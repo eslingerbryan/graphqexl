@@ -12,7 +12,7 @@ defmodule Mix.Tasks.Deploy do
       kdt_publish,
     ] |> Enum.map(&IO.puts/1)
 
-    !!do_deploy? && (kdt_deploy(deploy_args) |> IO.puts)
+    !!do_deploy? && (kdt_deploy(image_name |> deploy_args) |> IO.puts)
 
     IO.puts "[DONE] Deploy #{image_name}"
   end

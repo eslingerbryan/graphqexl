@@ -3,13 +3,13 @@ defmodule Mix.Tasks.Docker.Publish do
   Publish the built application container to the given image repo
   """
 
-  def run([image_name, image_repo, image_tag \\ nil]) do
+  def run([image_name, image_repo, image_tag]) do
     tag = image_tag || "#{git_sha}-dev"
     IO.puts "[STARTING] Publishing #{image_repo}/#{image_name}:#{tag}..."
 
     remote = docker_image(image_repo, image_name, tag)
-    remote
-    |> docker_tag
+    image_name
+    |> docker_tag(remote)
     |> cmd_and(remote |> docker_push)
 
     IO.puts "[DONE] Publishing Docker image..."
@@ -20,7 +20,7 @@ defmodule Mix.Tasks.Docker.Publish do
   end
 
   defp docker_image(name, repo, tag) do
-    "#{repo}/#{image_name}:#{tag}"
+    "#{repo}/#{name}:#{tag}"
   end
 
   defp local(image_name) do
@@ -32,9 +32,9 @@ defmodule Mix.Tasks.Docker.Publish do
     {"docker", ["push", remote]}
   end
 
-  defp docker_tag(remote) do
+  defp docker_tag(image_name, remote) do
     IO.puts("[...] Tagging #{remote}")
-    {"docker", ["tag", local, remote]}
+    {"docker", ["tag", local(image_name), remote]}
   end
 
   defp git_sha do

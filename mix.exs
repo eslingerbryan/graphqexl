@@ -5,7 +5,7 @@ defmodule Graphqexl.MixProject do
 
   def project do
     [
-      app: :graphqlexl,
+      app: :graphqexl,
       version: @version |> to_string,
       elixir: "~> 1.9",
       elixirc_paths: elixirc_paths(Mix.env()),

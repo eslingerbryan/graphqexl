@@ -1,4 +1,4 @@
-defmodule GraphqexlWeb.ErrorHelpers do
+defmodule Graphqexl.ErrorHelpers do
   @moduledoc """
   Conveniences for translating and building error messages.
   """
