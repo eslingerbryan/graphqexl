@@ -32,23 +32,23 @@ defmodule Graphqexl.Schema.Dsl do
     schema |> Schema.register(%Enum{name: name, values: values})
   end
 
-  def schema(schema, fields: %{}) do
+  def schema(schema, fields: fields) do
 
   end
 
-  def query(schema, fields: %{}) do
+  def query(schema, fields: fields) do
     schema |> Schema.register(%Query{fields: fields})
   end
 
-  def mutation(schema, fields: %{}) do
+  def mutation(schema, fields: fields) do
     schema |> Schema.register(%Mutation{fields: fields})
   end
 
-  def subscription(schema, fields: %{}) do
+  def subscription(schema, fields: fields) do
     schema |> Schema.register(%Subscription{fields: fields})
   end
 
-  def type(schema, name, implements: nil, fields: %{}) do
+  def type(schema, name, implements: implements, fields: fields) do
     schema |> Schema.register(%Type{name: name, implements: implements, fields: fields})
   end
 
@@ -56,20 +56,22 @@ defmodule Graphqexl.Schema.Dsl do
     schema |> Schema.register(%Union{name: name, type1: type1, type2: type2})
   end
 
-  def interface(schema, name, fields: %{}) do
+  def interface(schema, name, fields: fields) do
     schema |> Schema.register(%Interface{name: name, fields: fields})
   end
 
   defp compact(gql) do
     gql
-    |> (& Regex.replace(~r/\n+/, &1, "\n")).()
-    |> (& Regex.replace(~r/,+/, &1, ",")).()
-    |> (& Regex.replace(~r/(:|,)\s+/, &1, "\\g{1}\s")).()
-    |> (& Regex.replace(~r/{\s+/, &1, "{")).()
-    |> (& Regex.replace(~r/\[\s+/, &1, "[")).()
+    |> regex_replace(~r/\n+/, "\n")
+    |> regex_replace(~r/,+/, ",")
+    |> regex_replace(~r/(:|,)\s+/, "\\g{1}\s")
+    |> regex_replace(~r/{\s+/, "{")
+    |> regex_replace(~r/\[\s+/, "[")
     |> String.replace(" ,", ",")
     |> String.trim
   end
+
+  defp regex_replace(string, pattern, replacement), do: Regex.replace(pattern, string, replacement)
 
   defp replace(gql) do
     gql
@@ -87,11 +89,11 @@ defmodule Graphqexl.Schema.Dsl do
 
   defp transform(gql) do
     gql
-    |> (& Regex.replace(~r/enum (#{@patterns.name}) {\n/, &1, "enum \\g{1}, [")).()
-    |> (& Regex.replace(~r/(#{@patterns.enum_value})\n/, &1, ":\\g{1}, ")).()
-    |> (& Regex.replace(~r/(enum .*)}/, &1, "\\g{1}]")).()
-    |> (& Regex.replace(~r/(#{@patterns.field_name}:\s*#{@patterns.name})\n/, &1, "\\g{1}, ")).()
-    |> (& Regex.replace(~r/\simplements\s(#{@patterns.name})\s/, &1, ", implements: \\g{1}")).()
-    |> (& Regex.replace(~r/(union #{@patterns.name}) (.*) \| (.*)/, &1, "\\g{1} \\g{2}, \\g{3}")).()
+    |> regex_replace(~r/enum (#{@patterns.name}) {\n/, "enum \\g{1}, [")
+    |> regex_replace(~r/(#{@patterns.enum_value})\n/, ":\\g{1}, ")
+    |> regex_replace(~r/(enum .*)}/, "\\g{1}]")
+    |> regex_replace(~r/(#{@patterns.field_name}:\s*#{@patterns.name})\n/, "\\g{1}, ")
+    |> regex_replace(~r/\simplements\s(#{@patterns.name})\s/, ", implements: \\g{1}")
+    |> regex_replace(~r/(union #{@patterns.name}) (.*) \| (.*)/, "\\g{1} \\g{2}, \\g{3}")
   end
 end
