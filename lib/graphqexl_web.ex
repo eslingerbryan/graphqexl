@@ -5,8 +5,8 @@ defmodule GraphqexlWeb do
 
   This can be used in your application as:
 
-      use BennuWeb, :controller
-      use BennuWeb, :view
+      use GraphqexlWeb, :controller
+      use GraphqexlWeb, :view
 
   The definitions below will be executed for every view,
   controller, etc, so keep them short and clean, focused
@@ -19,11 +19,11 @@ defmodule GraphqexlWeb do
 
   def controller do
     quote do
-      use Phoenix.Controller, namespace: BennuWeb
+      use Phoenix.Controller, namespace: GraphqexlWeb
 
       import Plug.Conn
       import Graphqexl.Gettext
-      alias Graphqexl.Router.Helpers, as: Routes
+      alias GraphqexlWeb.Router.Helpers, as: Routes
     end
   end
 
@@ -41,7 +41,7 @@ defmodule GraphqexlWeb do
 
       import Graphqexl.ErrorHelpers
       import Graphqexl.Gettext
-      alias Graphqexl.Router.Helpers, as: Routes
+      alias GraphqexlWeb.Router.Helpers, as: Routes
     end
   end
 

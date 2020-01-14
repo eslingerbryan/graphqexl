@@ -10,7 +10,7 @@ defmodule Graphqexl.Application do
     children = [
       # Start the endpoint when the application starts
       #      Graphqexl.Auth,
-      Graphqexl.Endpoint,
+      GraphqexlWeb.Endpoint,
       # Starts a worker by calling: Graphqexl.Worker.start_link(arg)
       # {Graphqexl.Worker, arg},
     ]
