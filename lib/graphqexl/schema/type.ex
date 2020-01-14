@@ -4,6 +4,7 @@ defmodule Graphqexl.Schema.Type do
     deprecation_reason: "",
     description: "",
     fields: [],
+    implements: nil,
     name: "",
   )
 end

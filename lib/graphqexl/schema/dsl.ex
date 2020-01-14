@@ -1,3 +1,16 @@
+alias Graphqexl.Schema
+alias Graphqexl.Schema.{
+  Argument,
+  Enum,
+  Field,
+  Interface,
+  Mutation,
+  Query,
+  Subscription,
+  Type,
+  Union,
+}
+
 defmodule Graphqexl.Schema.Dsl do
   @doc "Prepares the graphql schema dsl string for parsing"
 
@@ -15,8 +28,8 @@ defmodule Graphqexl.Schema.Dsl do
     |> compact
   end
 
-  def type(schema, name, implements: nil, fields: %{}) do
-
+  def enum(schema, name, values) do
+    schema |> Schema.register(%Enum{name: name, values: values})
   end
 
   def schema(schema, fields: %{}) do
@@ -24,22 +37,27 @@ defmodule Graphqexl.Schema.Dsl do
   end
 
   def query(schema, fields: %{}) do
-
+    schema |> Schema.register(%Query{fields: fields})
   end
 
   def mutation(schema, fields: %{}) do
+    schema |> Schema.register(%Mutation{fields: fields})
   end
 
-  def subscription do
+  def subscription(schema, fields: %{}) do
+    schema |> Schema.register(%Subscription{fields: fields})
   end
 
-  def enum(schema, name, values) do
+  def type(schema, name, implements: nil, fields: %{}) do
+    schema |> Schema.register(%Type{name: name, implements: implements, fields: fields})
   end
 
   def union(schema, name, type1, type2) do
+    schema |> Schema.register(%Union{name: name, type1: type1, type2: type2})
   end
 
   def interface(schema, name, fields: %{}) do
+    schema |> Schema.register(%Interface{name: name, fields: fields})
   end
 
   defp compact(gql) do
