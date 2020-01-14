@@ -39,9 +39,7 @@ defmodule Treex.Traverse do
     [4, 3, 2, 1]
   """
   @spec traverse(tree, operation, traverse) :: history
-
   def traverse(tree, operation, type)
-
   def traverse(tree, operation, type) do
     case type do
       :dfs ->
@@ -53,38 +51,27 @@ defmodule Treex.Traverse do
   end
 
   @spec dfs(stack, operation, history) :: history
-
   defp dfs(stack, operation, history)
-
   defp dfs([], _, history), do: history
-
   defp dfs([%Tree{value: value, key: key, children: children} | stack], operation, history) do
     next(&dfs/3, stack, value, key, children, operation, history)
   end
 
   @spec bfs(queue, operation, history) :: history
-
   defp bfs(queue, operation, history)
-
   defp bfs({[], []}, _, history), do: history
-
   defp bfs(queue, operation, history) do
     {{:value, %Tree{value: value, key: key, children: children}}, new_queue} = :queue.out(queue)
     next(&bfs/3, new_queue, value, key, children, operation, history)
   end
 
   @spec tree_insert(collection, tree) :: collection
-
   defp tree_insert(collection, tree)
-
   defp tree_insert(collection, nil), do: collection
-
   defp tree_insert(stack, tree) when is_list(stack), do: [tree | stack]
-
   defp tree_insert(queue, tree), do: :queue.in(tree, queue)
 
   @spec next(function, collection, any, any, [tree], operation, history) :: history
-
   defp next(named_function, collection, value, key, children, operation, history) do
     case apply_operation(operation, value, key, history) do
       {:stop, res} ->
@@ -103,7 +90,6 @@ defmodule Treex.Traverse do
   end
 
   @spec apply_operation(operation, any, any, history) :: result
-
   defp apply_operation(operation, value, key, history) do
     arity = :erlang.fun_info(operation)[:arity]
 
@@ -116,10 +102,8 @@ defmodule Treex.Traverse do
   end
 
   @spec new_stack() :: stack
-
   defp new_stack, do: []
 
   @spec new_queue() :: queue
-
   defp new_queue, do: :queue.new()
 end
