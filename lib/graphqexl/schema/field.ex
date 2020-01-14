@@ -1,3 +1,5 @@
+alias Graphqexl.Schema.Ref
+
 defmodule Graphqexl.Schema.Field do
   defstruct(
     deprecated: false,

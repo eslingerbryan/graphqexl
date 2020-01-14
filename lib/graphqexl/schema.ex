@@ -22,7 +22,7 @@ defmodule Graphqexl.Schema do
   )
 
   def gql(str) do
-    %Schema{str: str |> Dsl.preprocess}
+    %Graphqexl.Schema{str: str |> Dsl.preprocess}
   end
 
   def register(schema, %Enum{} = enum) do

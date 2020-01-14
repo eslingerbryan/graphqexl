@@ -1,5 +1,5 @@
 alias Graphqexl.Schema.Ref
 
 defmodule Graphqexl.Schema.Union do
-  defstruct name: "", value1: %Ref{}, value2: %Ref{}
+  defstruct name: "", type1: %Ref{}, type2: %Ref{}
 end
