@@ -1,7 +1,10 @@
 defmodule Mix.Tasks.Dev do
-  @doc """
+  @moduledoc """
   [STUB] Run a development server with the specified schema file
+  """
 
+  @doc """
+  Run the dev server
   ARGS:
     - schema_file: file path where the schema is defined
   """

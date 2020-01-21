@@ -1,4 +1,8 @@
 defmodule Mix.Tasks.Docker.Publish do
+  @moduledoc """
+  Publish the built application container to the given image repo
+  """
+
   @doc """
   Publish the built application container to the given image repo
 

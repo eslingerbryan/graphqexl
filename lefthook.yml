@@ -1,0 +1,5 @@
+- lint:
+    parallel: true
+    commands:
+      credo:
+        run: mix credo --strict
