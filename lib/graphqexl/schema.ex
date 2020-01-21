@@ -49,7 +49,6 @@ defmodule Graphqexl.Schema do
   end
 
   @spec register(GraphqexlSchema.t, component) :: Graphqexl.Schema.t
-
   def register(schema, %Enum{} = component) do
     schema |> register(:enums, component)
   end
