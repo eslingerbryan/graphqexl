@@ -1,5 +1,7 @@
 # Graphqexl
 
+CircleCI (master): [![CircleCI](https://circleci.com/gh/eslingerbryan/graphqexl.svg?style=svg)](https://app.circleci.com/github/eslingerbryan/graphqexl/pipelines)
+
 **TODO: Add description**
 
 ## Installation
