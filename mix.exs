@@ -19,6 +19,22 @@ defmodule Graphqexl.MixProject do
           applications: [graphqexl: :permanent, runtime_tools: :permanent],
         ],
       ],
+      description: "Fully-loaded, pure-Elixir GraphQL server implementation with developer tools",
+      package: %{
+        files: [
+          "config",
+          "lib",
+          "priv",
+          "mix.exs",
+          "README*",
+          "LICENSE*"
+        ],
+        licenses: ["MIT"],
+        links: %{
+          repo: "https://github.com/eslingerbryan/graphqexl",
+          graphql: "https://graphql.org/"
+        }
+      },
     ]
   end
 
@@ -42,6 +58,7 @@ defmodule Graphqexl.MixProject do
     [
       {:authex, "~> 2.0"},
       {:credo, "~> 1.1.0", only: [:dev, :test], runtime: false},
+      {:ex_doc, ">= 0.0.0", only: :dev, runtime: false},
       {:gettext, "~> 0.11"},
       {:inflex, "~> 2.0.0"},
       {:jason, "~> 1.0"},
