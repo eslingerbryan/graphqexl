@@ -1,12 +1,12 @@
 defmodule Graphqexl.MixProject do
   use Mix.Project
 
-  @version '0.1.0'
+  @version "VERSION" |> File.read! |> String.trim
 
   def project do
     [
       app: :graphqexl,
-      version: @version |> to_string,
+      version: @version,
       elixir: "~> 1.9",
       elixirc_paths: elixirc_paths(Mix.env()),
       compilers: [:gettext] ++ Mix.compilers(),
@@ -46,7 +46,7 @@ defmodule Graphqexl.MixProject do
       description: 'Fully-loaded, pure-Elixir GraphQL server implementation with developer tools',
       mod: {Graphqexl.Application, []},
       extra_applications: [:logger, :runtime_tools],
-      vsn: @version,
+      vsn: @version |> to_charlist,
     ]
   end
 
