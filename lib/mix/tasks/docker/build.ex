@@ -1,4 +1,8 @@
 defmodule Mix.Tasks.Docker.Build do
+  @moduledoc """
+  Build the application's Docker Image
+  """
+
   @doc """
   Build the application's Docker image
 

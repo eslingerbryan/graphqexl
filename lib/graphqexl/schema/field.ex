@@ -10,7 +10,7 @@ defmodule Graphqexl.Schema.Field do
     deprecation_reason: "",
     description: "",
     name: "",
-    value: %Ref{},
+    value: %Ref{}
   )
 
   @type t ::

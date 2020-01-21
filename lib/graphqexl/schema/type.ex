@@ -11,7 +11,7 @@ defmodule Graphqexl.Schema.Type do
     description: "",
     fields: [],
     implements: nil,
-    name: "",
+    name: ""
   )
 
   @type t ::

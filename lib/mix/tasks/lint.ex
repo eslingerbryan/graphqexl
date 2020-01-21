@@ -1,4 +1,8 @@
 defmodule Mix.Tasks.Lint do
+  @moduledoc """
+  Perform linting and static analysis using Lefthook as a runner for tools like Credo
+  """
+
   @doc """
   Perform linting and static analysis using Lefthook as a runner for tools like Credo
   """

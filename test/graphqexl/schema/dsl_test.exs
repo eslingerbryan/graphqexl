@@ -1,3 +1,5 @@
+alias Graphqexl.Schema.Dsl
+
 defmodule Graphqexl.Schema.DslTest do
   use ExUnit.Case
 
@@ -46,6 +48,6 @@ defmodule Graphqexl.Schema.DslTest do
       schema, fields: %{query: Query, mutation: Mutation}
       """
 
-    assert Graphqexl.Schema.Dsl.preprocess(input) == expected |> String.trim
+    assert Dsl.preprocess(input) == expected |> String.trim
   end
 end
