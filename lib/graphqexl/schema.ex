@@ -57,7 +57,13 @@ defmodule Graphqexl.Schema do
   Returns %Graphqexl.Schema{}
   """
   def gql(str) when is_binary(str) do
-    %Graphqexl.Schema{str: str |> Dsl.preprocess}
+    executable_schema = str |> Dsl.preprocess
+
+    executable_schema
+    |> String.split("\n")
+    |> Enum.each(&(&1 |> IO.puts))
+
+    %Graphqexl.Schema{str: executable_schema}
   end
 
   @doc """
