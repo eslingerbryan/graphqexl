@@ -1,6 +1,7 @@
 defmodule Graphqexl.Query do
   @type json :: Map.t()
-  @type t :: %Graphqexl.Query{operataions: [t]}
+  @type gql :: String.t()
+  @type t :: %Graphqexl.Query{operations: [t]}
 
   defstruct operations: []
 
@@ -12,8 +13,17 @@ defmodule Graphqexl.Query do
     # return %Query{operations: [<operations>]}
   end
 
-  @spec parse(json) :: Treex.Tree.t()
+  @spec parse(json) :: Query.t()
   def parse(json) do
+    # tokenize
+    # pass to handler based on operation type (query, mutation, subscription)
+    # extract resolver tree
+    # validate required arguments and argument types
+    # verify all leaves are scalars
+  end
+
+  @spec parse(gql) :: Query.t()
+  def parse(gql) when is_binary(gql) do
     # tokenize
     # pass to handler based on operation type (query, mutation, subscription)
     # extract resolver tree
