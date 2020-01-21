@@ -1,6 +1,9 @@
 alias Graphqexl.Schema.Ref
 
 defmodule Graphqexl.Schema.Mutation do
+  @moduledoc """
+  GraphQL mutation
+  """
   defstruct arguments: %{}, name: "", fields: %{}, return: %Ref{}
 
   @type t ::

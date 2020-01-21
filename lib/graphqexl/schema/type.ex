@@ -1,6 +1,10 @@
 alias Graphqexl.Schema.Interface
 
 defmodule Graphqexl.Schema.Type do
+  @moduledoc """
+  GraphQL type
+  """
+
   defstruct(
     deprecated: false,
     deprecation_reason: "",

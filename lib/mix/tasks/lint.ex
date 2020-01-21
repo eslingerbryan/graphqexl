@@ -1,8 +1,8 @@
 defmodule Mix.Tasks.Lint do
-  @shortdoc """
+  @doc """
   Perform linting and static analysis using Lefthook as a runner for tools like Credo
   """
-
+  @spec run([]) :: :ok
   def run([]) do
     IO.puts "[STARTING] Static Analysis..."
 
