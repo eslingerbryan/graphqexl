@@ -1,3 +1,5 @@
+alias Graphqexl.Schema.Interface
+
 defmodule Graphqexl.Schema.Type do
   defstruct(
     deprecated: false,
@@ -7,4 +9,14 @@ defmodule Graphqexl.Schema.Type do
     implements: nil,
     name: "",
   )
+
+  @type t ::
+    %Graphqexl.Schema.Type{
+      deprecated: boolean(),
+      deprecation_reason: String.t(),
+      description: String.t(),
+      fields: Map.t(),
+      implements: Interface.t() | nil,
+      name: String.t()
+    }
 end
