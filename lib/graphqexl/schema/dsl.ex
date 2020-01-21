@@ -1,10 +1,10 @@
 alias Graphqexl.Schema
 alias Graphqexl.Schema.{
-  Enum,
   Interface,
   Mutation,
   Query,
   Subscription,
+  TEnum,
   Type,
   Union,
 }
@@ -45,7 +45,7 @@ defmodule Graphqexl.Schema.Dsl do
   """
   @doc since: "0.1.0"
   def enum(schema, name, values) do
-    schema |> Schema.register(%Enum{name: name, values: values})
+    schema |> Schema.register(%TEnum{name: name, values: values})
   end
 
   @doc """

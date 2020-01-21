@@ -1,10 +1,10 @@
 alias Graphqexl.Schema.{
   Dsl,
-  Enum,
   Interface,
   Mutation,
   Query,
   Subscription,
+  TEnum,
   Type,
   Union,
 }
@@ -27,7 +27,7 @@ defmodule Graphqexl.Schema do
   )
 
   @type component ::
-          Enum.t |
+          TEnum.t |
           Interface.t |
           Mutation.t |
           Query.t |
@@ -40,7 +40,7 @@ defmodule Graphqexl.Schema do
 
   @type t ::
           %Graphqexl.Schema{
-            enums: list(Enum.t),
+            enums: list(TEnum.t),
             interfaces: list(Interface.t),
             mutations: list(Mutation.t),
             queries: list(Queries.t),
@@ -57,7 +57,13 @@ defmodule Graphqexl.Schema do
   Returns %Graphqexl.Schema{}
   """
   def gql(str) when is_binary(str) do
-    %Graphqexl.Schema{str: str |> Dsl.preprocess}
+    executable_schema = str |> Dsl.preprocess
+
+    executable_schema
+    |> String.split("\n")
+    |> Enum.each(&(&1 |> IO.puts))
+
+    %Graphqexl.Schema{str: executable_schema}
   end
 
   @doc """
@@ -75,7 +81,7 @@ defmodule Graphqexl.Schema do
 
   Returns %Graphqexl.Schema{}
   """
-  def register(schema, %Enum{} = component) do
+  def register(schema, %TEnum{} = component) do
     schema |> register(:enums, component)
   end
 
