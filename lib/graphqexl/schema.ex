@@ -10,6 +10,11 @@ alias Graphqexl.Schema.{
 }
 
 defmodule Graphqexl.Schema do
+  @moduledoc """
+  Structured representation of a GraphQL schema, either built dynamically or
+  parsed from a JSON document or GQL string.
+  """
+
   defstruct(
     enums: [],
     interfaces: [],
@@ -31,6 +36,7 @@ defmodule Graphqexl.Schema do
           Union.t
 
   @type gql :: String.t()
+  @type json :: Map.t()
 
   @type t ::
           %Graphqexl.Schema{
@@ -44,11 +50,31 @@ defmodule Graphqexl.Schema do
             unions: list(Union.t),
           }
 
-  def gql(str) do
+  @spec gql(gql | json) :: %Graphqexl.Schema{}
+  @doc """
+  Parses a gql string into a %Graphqexl.Schema{}.
+
+  Returns %Graphqexl.Schema{}
+  """
+  def gql(str) when is_binary(str) do
     %Graphqexl.Schema{str: str |> Dsl.preprocess}
   end
 
+  @doc """
+  Parses a json map into a %Graphqexl.Schema{}.
+
+  Returns %Graphqexl.Schema{}
+  """
+  def gql(json) do
+    %Graphqexl.Schema{}
+  end
+
   @spec register(GraphqexlSchema.t, component) :: Graphqexl.Schema.t
+  @doc """
+  Registers the given component on the given schema.
+
+  Returns %Graphqexl.Schema{}
+  """
   def register(schema, %Enum{} = component) do
     schema |> register(:enums, component)
   end
@@ -77,10 +103,12 @@ defmodule Graphqexl.Schema do
     schema |> register(:unions, component)
   end
 
+  @doc false
   defp register(schema, key, value) do
     schema |> Map.update(key, value, &prepend_list/2)
   end
 
+  @doc false
   defp prepend_list(list, value) do
     list |> List.insert_at(0, value)
   end
