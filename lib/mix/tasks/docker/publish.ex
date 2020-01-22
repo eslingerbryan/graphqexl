@@ -11,6 +11,7 @@ defmodule Mix.Tasks.Docker.Publish do
     - image_repo, string, e.g.: "gcr.io/graphqexl"
     - image_tag, string, e.g.: "latest"
   """
+  @doc since: "0.1.0"
   @spec run([String.t]) :: :ok
   def run([image_name, image_repo, image_tag]) do
     tag = image_tag || "#{git_sha}-dev"
