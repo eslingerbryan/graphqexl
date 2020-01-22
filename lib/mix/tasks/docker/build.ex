@@ -11,6 +11,7 @@ defmodule Mix.Tasks.Docker.Build do
     - image_repo, string, e.g.: "gcr.io/absynthe"
     - release_name, string, e.g.: "stable"
   """
+  @doc since: "0.1.0"
   @spec run([String.t]) :: :ok
   def run([image_name, image_repo, release_name]) do
     IO.puts "[STARTING] Building #{image_repo}/#{image_name}:#{release_name} Docker image..."
