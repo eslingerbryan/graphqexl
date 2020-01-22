@@ -1,13 +1,21 @@
+Graphqexl.Query.{
+  Operation,
+  ResultSet,
+  Validator,
+}
+alias Graphqexl.Schema
 alias Treex.Tree
 
 defmodule Graphqexl.Query do
   @moduledoc """
-  GraphQL query, comprised of one or more `%Graphqexl.Query.Operation`s.
+  GraphQL query, comprised of one or more `t:Graphqexl.Query.Operation`s.
+
+  Built by calling `parse/1` with either a gql string (see `Graphqexl.Schema.Dsl`) or json `t:Map`.
   """
 
-  @type json :: Map.t()
-  @type gql :: String.t()
-  @type t :: %Graphqexl.Query{operations: [t]}
+  @type json :: Map.t
+  @type gql :: String.t
+  @type t :: %Graphqexl.Query{operations: [Operation.t]}
 
   defstruct operations: []
 
@@ -15,54 +23,43 @@ defmodule Graphqexl.Query do
   @opening_brace "{"
 
   @doc """
-  Execute the given query
+  Execute the given `t:Graphqexl.Query`
 
-  Returns: `%Graphqexl.Query.ResultSet{}`
+  Returns: `t:Graphqexl.Query.ResultSet`
   """
   @doc since: "0.1.0"
-  @spec execute(Query.t()) :: ResultSet.t()
-  def execute(query) do
-    # build context
+  @spec execute(Graphqexl.Query.t, Schema.t) :: ResultSet.t
+  def execute(query, schema) do
+    query |> validate!(schema)
+    # build parent context
     # resolve resolver tree into %ResultSet{}
     # serialize into %Operation{}s
     # return %Query{operations: [<operations>]}
   end
 
   @doc """
-  Parse the given json map into a Query
+  Parse the given json map into a `t:Graphqexl.Query`
 
-  Returns: %Graphqexl.Query{}
+  Returns: `t:Graphqexl.Query`
   """
   @doc since: "0.1.0"
-  @spec parse(json) :: Query.t()
+  @spec parse(json) :: Query.t
   def parse(json) do
-    # tokenize
-    # pass to handler based on operation type (query, mutation, subscription)
-    # extract resolver tree
-    # validate required arguments and argument types
-    # verify all leaves are scalars
+    # convert bare map to %Query{}
   end
 
   @doc """
-  Parse the given gql string (see `Graphqexl.Schema.Dsl`) into a Query
+  Parse the given gql string (see `Graphqexl.Schema.Dsl`) into a `t:Graphqexl.Query`
 
-  Returns: `%Graphqexl.Query{}`
+  Returns: `t:Graphqexl.Query`
   """
   @doc since: "0.1.0"
-  @spec parse(gql) :: Query.t()
+  @spec parse(gql) :: Query.t
   def parse(gql) when is_binary(gql) do
-    # tokenize
-    # pass to handler based on operation type (query, mutation, subscription)
-    # extract resolver tree
-    # validate required arguments and argument types
-    # verify all leaves are scalars
-  end
-
-  @doc false
-  defp tokenize(gql) do
     gql
     |> String.split("\n")
     |> Enum.map(&String.trim/1)
+    |> Enum.map(&(String.replace(&1, "\n{", "{")))
     |> Enum.reduce(%{stack: [], treex: %Tree{}}, &tokenize/2)
   end
 
@@ -84,5 +81,10 @@ defmodule Graphqexl.Query do
     end
 
     %{stack: new_stack, treex: new_treex}
+  end
+
+  @doc false
+  defp validate!(query, schema) do
+    true = query |> Validator.valid?(schema)
   end
 end
