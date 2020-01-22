@@ -23,4 +23,20 @@ defmodule Graphqexl.Schema.Type do
       implements: Interface.t() | nil,
       name: String.t()
     }
+
+  @doc """
+  Lists the fields available on the given `t:Graphqexl.Schema.Type`.
+
+  Returns: `[t:Graphqexl.Schema.Fields]`
+  """
+  @doc since: "0.1.0"
+  @spec fields(Graphqexl.Schema.Type.t):: list(Graphqexl.Schema.Field.t)
+  def fields(type) do
+    implemented_fields = if is_nil(type.implements) do
+      []
+    else
+      type.implements |> Ref.fields
+    end
+    type.fields |> Map.keys |> Enum.concat(implemented_fields)
+  end
 end

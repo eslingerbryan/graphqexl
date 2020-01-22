@@ -13,4 +13,16 @@ defmodule Graphqexl.Schema.Interface do
       on: list(Map.t()),
       extend: Ref.t()
     }
+
+  @doc """
+  Lists the available fields on the given interface.
+
+  Returns: `[t:Graphqexl.Schema.Field]`
+  """
+  @doc since: "0.1.0"
+  @spec fields(Graphqexl.Schema.Interface.t) :: list(Graphqexl.Schema.Field.t)
+  def fields(interface) do
+    # TODO: handle extended interfaces
+    interface.fields
+  end
 end
