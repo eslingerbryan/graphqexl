@@ -4,15 +4,6 @@ CircleCI (master): [![CircleCI](https://circleci.com/gh/eslingerbryan/graphqexl.
 
 Graphqexl is a fully-loaded GraphQL implementation along with server utilities and developer tools.
 
-## Schema
-Schemas can be expressed as `gql` DSL syntax, a JSON document, or by building up a %Graphqexl.Schema 
-struct via calls to `Graphql.Schema.register/2`.
-
-## Resolvers
-Resolvers are functions that are invoked to fulfill query executions. They can take parameters, as 
-expressed as query arguments in the schema, and must return a type coercible to the type specified 
-in the schema.
-
 ## Installation
 
 The package can be installed by adding `graphqexl` to your list of dependencies in `mix.exs`:
