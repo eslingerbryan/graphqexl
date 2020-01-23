@@ -66,10 +66,10 @@ defmodule Treex.Traverse do
   end
 
   @spec tree_insert(collection, tree) :: collection
-  defp tree_insert(collection, tree)
-  defp tree_insert(collection, nil), do: collection
-  defp tree_insert(stack, tree) when is_list(stack), do: [tree | stack]
-  defp tree_insert(queue, tree), do: :queue.in(tree, queue)
+  def tree_insert(collection, tree)
+  def tree_insert(collection, nil), do: collection
+  def tree_insert(stack, tree) when is_list(stack), do: [tree | stack]
+  def tree_insert(queue, tree), do: :queue.in(tree, queue)
 
   @spec next(function, collection, any, any, [tree], operation, history) :: history
   defp next(named_function, collection, value, key, children, operation, history) do

@@ -41,17 +41,6 @@ defmodule Graphqexl.Query do
   end
 
   @doc """
-  Parse the given json map into a `t:Graphqexl.Query`
-
-  Returns: `t:Graphqexl.Query`
-  """
-  @doc since: "0.1.0"
-  @spec parse(json) :: Query.t
-  def parse(json) do
-    # convert bare map to %Query{}
-  end
-
-  @doc """
   Parse the given gql string (see `Graphqexl.Schema.Dsl`) into a `t:Graphqexl.Query`
 
   Returns: `t:Graphqexl.Query`
@@ -66,11 +55,22 @@ defmodule Graphqexl.Query do
     |> Enum.reduce(%{stack: [], treex: %Tree{}}, &tokenize/2)
   end
 
+  @doc """
+  Parse the given json map into a `t:Graphqexl.Query`
+
+  Returns: `t:Graphqexl.Query`
+  """
+  @doc since: "0.1.0"
+  @spec parse(json) :: Query.t
+  def parse(_json) do
+    # convert bare map to %Query{}
+  end
+
   @doc false
   defp tokenize(line, %{stack: stack, treex: tree}) do
     unbraced =
       [@closing_brace, @opening_brace]
-      |> Enum.reduce(line, &(String.replace(&1, "")))
+      |> Enum.reduce(line, &(String.replace(&1, "\n#{@opening_brace}", @opening_brace)))
 
     new_treex = Traverse.tree_insert(
       %Tree{value: unbraced, children: []},
@@ -79,7 +79,10 @@ defmodule Graphqexl.Query do
 
     new_stack = case line |> String.at(-1) do
       @opening_brace -> stack |> List.insert_at(0, new_treex)
-      @closing_brace -> stack |> List.pop_at(0) |> elem(1)
+      @closing_brace ->
+        {node, remaining} = stack |> List.pop_at(0)
+        [node] |> Traverse.tree_insert(tree)
+        remaining
       _ -> stack
     end
 

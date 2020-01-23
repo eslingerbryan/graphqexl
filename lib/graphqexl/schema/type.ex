@@ -1,4 +1,7 @@
-alias Graphqexl.Schema.Interface
+alias Graphqexl.Schema.{
+  Interface,
+  Ref
+}
 
 defmodule Graphqexl.Schema.Type do
   @moduledoc """

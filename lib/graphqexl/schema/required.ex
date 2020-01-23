@@ -1,7 +1,4 @@
-alias Graphqexl.Schema.{
-  Field,
-  Ref,
-}
+alias Graphqexl.Schema.Ref
 
 defmodule Graphqexl.Schema.Required do
   @moduledoc """
