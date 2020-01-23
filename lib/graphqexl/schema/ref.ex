@@ -13,7 +13,7 @@ defmodule Graphqexl.Schema.Ref do
 
   @placeholder %{}
 
-  defstruct :type
+  defstruct type: %{}
 
   @type t :: %Graphqexl.Schema.Ref{type: atom}
   @type component ::
