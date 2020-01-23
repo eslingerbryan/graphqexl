@@ -4,7 +4,10 @@ alias Graphqexl.Query.{
   Validator,
 }
 alias Graphqexl.Schema
-alias Treex.Tree
+alias Treex.{
+  Traverse,
+  Tree
+}
 
 defmodule Graphqexl.Query do
   @moduledoc """
