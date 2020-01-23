@@ -23,7 +23,11 @@ defmodule Graphqexl.Query do
 
   defstruct operations: []
 
+  @close_argument ")"
   @closing_brace "}"
+  @comment_char "#"
+  @delimiter ","
+  @open_argument "("
   @opening_brace "{"
 
   @doc """
@@ -73,19 +77,26 @@ defmodule Graphqexl.Query do
       [@closing_brace, @opening_brace]
       |> Enum.reduce(line, &(String.replace(&1, "\n#{@opening_brace}", @opening_brace)))
 
-    new_treex = Traverse.tree_insert(
-      %Tree{value: unbraced, children: []},
-      stack |> List.first
-    )
+    {new_stack, new_treex} =
+      if line |> String.starts_with?(@comment_char) do
+        {stack, tree}
+      else
+        new_stack = case line |> String.at(-1) do
+          @opening_brace -> stack |> List.insert_at(0, new_treex)
+          @closing_brace ->
+            {node, remaining} = stack |> List.pop_at(0)
+            [node] |> Traverse.tree_insert(tree)
+            remaining
+          _ -> stack
+        end
 
-    new_stack = case line |> String.at(-1) do
-      @opening_brace -> stack |> List.insert_at(0, new_treex)
-      @closing_brace ->
-        {node, remaining} = stack |> List.pop_at(0)
-        [node] |> Traverse.tree_insert(tree)
-        remaining
-      _ -> stack
-    end
+        new_treex = Traverse.tree_insert(
+          %Tree{value: unbraced, children: []},
+          stack |> List.first
+        )
+
+        {new_stack, new_treex}
+      end
 
     %{stack: new_stack, treex: new_treex}
   end
