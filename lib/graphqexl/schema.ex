@@ -73,7 +73,7 @@ defmodule Graphqexl.Schema do
   Returns `t:Graphqexl.Schema.t/0`
   """
   @doc since: "0.1.0"
-  def gql(json) do
+  def gql(_json) do
     %Graphqexl.Schema{}
   end
 
