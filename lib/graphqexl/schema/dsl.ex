@@ -56,7 +56,7 @@ defmodule Graphqexl.Schema.Dsl do
   TODO: docstring examples
   """
   @doc since: "0.1.0"
-  def schema(schema, fields: fields) do
+  def schema(_schema, fields: _fields) do
 
   end
 
