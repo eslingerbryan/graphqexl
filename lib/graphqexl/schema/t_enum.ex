@@ -14,7 +14,7 @@ defmodule Graphqexl.Schema.TEnum do
   """
   @doc since: "0.1.0"
   @spec values(Graphqexl.Schema.TEnum.t) :: list(atom)
-  def fields(enum) do
+  def values(enum) do
     enum.values
   end
 end
