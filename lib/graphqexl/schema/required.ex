@@ -12,7 +12,7 @@ defmodule Graphqexl.Schema.Required do
   @doc """
   Lists the fields available on the required type.
 
-  Returns: `[t:Graphqexl.Schema.Field]`
+  Returns: `[t:Graphqexl.Schema.Field.t/0]`
   """
   @doc since: "0.1.0"
   @spec fields(Graphqexl.Schema.Required.t) :: list(Graphqexl.Schema.Field)

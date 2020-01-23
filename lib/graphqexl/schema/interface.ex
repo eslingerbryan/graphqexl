@@ -17,7 +17,7 @@ defmodule Graphqexl.Schema.Interface do
   @doc """
   Lists the available fields on the given interface.
 
-  Returns: `[t:Graphqexl.Schema.Field]`
+  Returns: `[t:Graphqexl.Schema.Field.t/0]`
   """
   @doc since: "0.1.0"
   @spec fields(Graphqexl.Schema.Interface.t) :: list(Graphqexl.Schema.Field.t)

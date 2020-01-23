@@ -24,7 +24,7 @@ defmodule Graphqexl.Schema.Ref do
   @doc """
   Returns a list of the fields available on the type resolved to by the given ref.
 
-  Returns: `[t:Graphqexl.Schema.Field]`
+  Returns: `[t:Graphqexl.Schema.Field.t/0]`
   """
   @doc since: "0.1.0"
   @spec fields(Graphqexl.Schema.Ref.t) :: list(Field.t)
@@ -38,9 +38,9 @@ defmodule Graphqexl.Schema.Ref do
   end
 
   @doc """
-  Resolves the given `t:Graphqexl.Schema.Ref` into its corresponding `t:Graphqexl.Schema.Ref.component`
+  Resolves the given `t:Graphqexl.Schema.Ref.t/0` into its corresponding `t:Graphqexl.Schema.Ref.component/0`
 
-  Returns: `t:Graphqexl.Schema.Ref`
+  Returns: `t:Graphqexl.Schema.Ref.t/0`
   """
   @doc since: "0.1.0"
   @spec resolve(Graphqexl.Schema.Ref.t) :: component

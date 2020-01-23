@@ -11,9 +11,10 @@ alias Treex.{
 
 defmodule Graphqexl.Query do
   @moduledoc """
-  GraphQL query, comprised of one or more `t:Graphqexl.Query.Operation`s.
+  GraphQL query, comprised of one or more `t:Graphqexl.Query.Operation.t/0`s.
 
-  Built by calling `parse/1` with either a gql string (see `Graphqexl.Schema.Dsl`) or json `t:Map`.
+  Built by calling `parse/1` with either a `t:Graphqexl.Query.gql/0` string (see `Graphqexl.Schema.Dsl`)
+  or `t:Graphqexl.Query.json/0`.
   """
 
   @type json :: Map.t
@@ -26,9 +27,9 @@ defmodule Graphqexl.Query do
   @opening_brace "{"
 
   @doc """
-  Execute the given `t:Graphqexl.Query`
+  Execute the given `t:Graphqexl.Query.t/0`
 
-  Returns: `t:Graphqexl.Query.ResultSet`
+  Returns: `t:Graphqexl.Query.ResultSet.t/0`
   """
   @doc since: "0.1.0"
   @spec execute(Graphqexl.Query.t, Schema.t) :: ResultSet.t
@@ -41,9 +42,9 @@ defmodule Graphqexl.Query do
   end
 
   @doc """
-  Parse the given gql string (see `Graphqexl.Schema.Dsl`) into a `t:Graphqexl.Query`
+  Parse the given gql string (see `Graphqexl.Schema.Dsl`) into a `t:Graphqexl.Query.t/0`
 
-  Returns: `t:Graphqexl.Query`
+  Returns: `t:Graphqexl.Query.t/0`
   """
   @doc since: "0.1.0"
   @spec parse(gql) :: Query.t
@@ -56,9 +57,9 @@ defmodule Graphqexl.Query do
   end
 
   @doc """
-  Parse the given json map into a `t:Graphqexl.Query`
+  Parse the given json map into a `t:Graphqexl.Query.t/0`
 
-  Returns: `t:Graphqexl.Query`
+  Returns: `t:Graphqexl.Query.t/0`
   """
   @doc since: "0.1.0"
   @spec parse(json) :: Query.t

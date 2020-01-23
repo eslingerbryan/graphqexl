@@ -10,9 +10,9 @@ defmodule Graphqexl.Schema.Union do
   @type t :: %Graphqexl.Schema.Union{name: String.t(), type1: Ref.t(), type2: Ref.t()}
 
   @doc """
-  Lists the fields available on the given `t:Graphqexl.Schema.Union`.
+  Lists the fields available on the given `t:Graphqexl.Schema.Union.t/0`.
 
-  Returns: `[t:Graphqexl.Schema.Field]`
+  Returns: `[t:Graphqexl.Schema.Field.t/0]`
   """
   @doc since: "0.1.0"
   @spec fields(Graphqexl.Schema.Union.t):: list(Graphqexl.Schema.Field.t)

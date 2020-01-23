@@ -28,9 +28,9 @@ defmodule Graphqexl.Schema.Type do
     }
 
   @doc """
-  Lists the fields available on the given `t:Graphqexl.Schema.Type`.
+  Lists the fields available on the given `t:Graphqexl.Schema.Type.t/0`.
 
-  Returns: `[t:Graphqexl.Schema.Fields]`
+  Returns: `[t:Graphqexl.Schema.Field.t/0]`
   """
   @doc since: "0.1.0"
   @spec fields(Graphqexl.Schema.Type.t):: list(Graphqexl.Schema.Field.t)

@@ -5,10 +5,10 @@ defmodule Graphqexl.Schema.TEnum do
 
   defstruct name: "", values: []
 
-  @type t :: %Graphqexl.Schema.TEnum{name: String.t(), values: list(atom)}
+  @type t :: %Graphqexl.Schema.TEnum{name: String.t, values: list(atom)}
 
   @doc """
-  Lists the values available on the given `t:Graphqexl.Schema.TEnum`.
+  Lists the values available on the given `t:Graphqexl.Schema.TEnum.t/0`.
 
   Returns: `[t:atom]`
   """
