@@ -11,7 +11,7 @@ alias Graphqexl.Schema.{
 
 defmodule Graphqexl.Schema.Dsl do
   @moduledoc """
-  Domain-Specific Language for expressing and parsing a GQL string as a %Graphqexl.Schema{}
+  Domain-Specific Language for expressing and parsing a GQL string as a `t:Graphqexl.Schema.t/0`
   """
 
   @patterns %{
@@ -23,7 +23,7 @@ defmodule Graphqexl.Schema.Dsl do
   @doc """
   Prepares the graphql schema dsl string for parsing
 
-  Returns %Graphqexl.Schema{}
+  Returns `t:Graphqexl.Schema.t/0`
 
   TODO: docstring examples
   """
@@ -39,7 +39,7 @@ defmodule Graphqexl.Schema.Dsl do
   @doc """
   Creates a new enum from the given spec
 
-  Returns %Graphqexl.Schema{}
+  Returns `t:Graphqexl.Schema.t/0`
 
   TODO: docstring examples
   """
@@ -51,7 +51,7 @@ defmodule Graphqexl.Schema.Dsl do
   @doc """
   Creates a new schema from the given spec
 
-  Returns %Graphqexl.Schema{}
+  Returns `t:Graphqexl.Schema.t/0`
 
   TODO: docstring examples
   """
@@ -63,7 +63,7 @@ defmodule Graphqexl.Schema.Dsl do
   @doc """
   Creates a new query from the given spec
 
-  Returns %Graphqexl.Schema{}
+  Returns `t:Graphqexl.Schema.t/0`
 
   TODO: docstring examples
   """
@@ -75,7 +75,7 @@ defmodule Graphqexl.Schema.Dsl do
   @doc """
   Creates a new mutation from the given spec
 
-  Returns %Graphqexl.Schema{}
+  Returns `t:Graphqexl.Schema.t/0`
 
   TODO: docstring examples
   """
@@ -87,7 +87,7 @@ defmodule Graphqexl.Schema.Dsl do
   @doc """
   Creates a new subscription from the given spec
 
-  Returns %Graphqexl.Schema{}
+  Returns `t:Graphqexl.Schema.t/0`
 
   TODO: docstring examples
   """
@@ -111,7 +111,7 @@ defmodule Graphqexl.Schema.Dsl do
   @doc """
   Creates a new union from the given spec
 
-  Returns %Graphqexl.Schema{}
+  Returns `t:Graphqexl.Schema.t/0`
 
   TODO: docstring examples
   """
@@ -123,7 +123,7 @@ defmodule Graphqexl.Schema.Dsl do
   @doc """
   Creates a new interface from the given spec
 
-  Returns %Graphqexl.Schema{}
+  Returns `t:Graphqexl.Schema.t/0`
 
   TODO: docstring examples
   """

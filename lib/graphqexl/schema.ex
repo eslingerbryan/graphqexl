@@ -52,9 +52,9 @@ defmodule Graphqexl.Schema do
 
   @spec gql(gql | json) :: %Graphqexl.Schema{}
   @doc """
-  Parses a gql string into a `%Graphqexl.Schema{}`.
+  Parses a gql string into a `t:Graphqexl.Schema.t/0`.
 
-  Returns `%Graphqexl.Schema{}`
+  Returns `t:Graphqexl.Schema.t/0`
   """
   @doc since: "0.1.0"
   def gql(str) when is_binary(str) do
@@ -68,9 +68,9 @@ defmodule Graphqexl.Schema do
   end
 
   @doc """
-  Parses a json map into a `%Graphqexl.Schema{}`.
+  Parses a json map into a `t:Graphqexl.Schema.t/0`.
 
-  Returns `%Graphqexl.Schema{}`
+  Returns `t:Graphqexl.Schema.t/0`
   """
   @doc since: "0.1.0"
   def gql(json) do
@@ -81,7 +81,7 @@ defmodule Graphqexl.Schema do
   @doc """
   Registers the given component on the given schema.
 
-  Returns `%Graphqexl.Schema{}`
+  Returns `t:Graphqexl.Schema.t/0`
   """
   @doc since: "0.1.0"
   def register(schema, %TEnum{} = component) do
