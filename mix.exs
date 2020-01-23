@@ -7,6 +7,7 @@ defmodule Graphqexl.MixProject do
     [
       app: :graphqexl,
       version: @version,
+      docs: docs(),
       elixir: "~> 1.9",
       elixirc_paths: elixirc_paths(Mix.env()),
       compilers: [:gettext] ++ Mix.compilers(),
@@ -62,6 +63,28 @@ defmodule Graphqexl.MixProject do
       {:gettext, "~> 0.11"},
       {:inflex, "~> 2.0.0"},
       {:jason, "~> 1.0"},
+    ]
+  end
+
+  defp docs do
+    [
+      main: "overview",
+      extra_section: "GUIDES",
+      formatters: ["html", "epub"],
+      extras: extras(),
+      groups_for_extras: groups_for_extras()
+    ]
+  end
+
+  defp extras do
+    [
+      "guides/overview.md",
+    ]
+  end
+
+  defp groups_for_extras do
+    [
+      "Overview": ~r/guides\/[^\/]+\.md/,
     ]
   end
 
