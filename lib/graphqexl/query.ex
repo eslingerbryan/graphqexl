@@ -1,4 +1,4 @@
-Graphqexl.Query.{
+alias Graphqexl.Query.{
   Operation,
   ResultSet,
   Validator,
