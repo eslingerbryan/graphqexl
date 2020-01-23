@@ -91,6 +91,28 @@ defmodule Graphqexl.MixProject do
     ]
   end
 
+  defp docs do
+    [
+      main: "overview",
+      extra_section: "GUIDES",
+      formatters: ["html", "epub"],
+      extras: extras(),
+      groups_for_extras: groups_for_extras()
+    ]
+  end
+
+  defp extras do
+    [
+      "guides/overview.md",
+    ]
+  end
+
+  defp groups_for_extras do
+    [
+      "Overview": ~r/guides\/[^\/]+\.md/,
+    ]
+  end
+
   # Aliases are shortcuts or tasks specific to the current project.
   # For example, to create, migrate and run the seeds file at once:
   #
