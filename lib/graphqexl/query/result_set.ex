@@ -5,5 +5,5 @@ defmodule Graphqexl.Query.ResultSet do
 
   defstruct data: %{}, errors: %{}
 
-  @type t :: %Graphql.Query.ResultSet{data: Map.t(), errors: Map.t()}
+  @type t :: %Graphqexl.Query.ResultSet{data: Map.t, errors: Map.t}
 end
