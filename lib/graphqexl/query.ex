@@ -38,13 +38,11 @@ defmodule Graphqexl.Query do
   Returns: `t:Graphqexl.Query.ResultSet.t/0`
   """
   @doc since: "0.1.0"
-  @spec execute(Graphqexl.Query.t, Schema.t) :: ResultSet.t
-  def execute(query, schema) do
-    query |> validate!(schema)
-    # build parent context
-    # resolve resolver tree into %ResultSet{}
-    # serialize into %Operation{}s
-    # return %Query{operations: [<operations>]}
+  @spec execute(Graphqexl.Query.t, Schema.t, Map.t) :: ResultSet.t
+  def execute(query, schema, resolvers) do
+    query
+    |> validate!(schema)
+    |> resolve!(resolvers)
   end
 
   @doc """
@@ -178,30 +176,16 @@ defmodule Graphqexl.Query do
           %{stack: new_stack, current: current, operations: operations}
       end
 
-      @closing_brace ->
-        case stack |> Enum.count do
-          0 ->
-            %{stack: [], current: nil, operations: operations}
-          1 ->
-            new_operations =
-              operations
-              |> stack_push(%{current | fields: stack |> stack_pop |> elem(0) |> Enum.into(%{})})
-            %{stack: [], current: nil, operations: new_operations}
-          _ ->
-            {top, rest} = stack |> stack_pop
-            {new_top, remaining} = rest |> stack_pop
-            {parent, others} = new_top |> stack_pop
-            new_parent = others |> stack_push({parent |> elem(0), top |> Enum.into(%{})})
+  defp resolve!({query, resolvers}) do
+    resolvers
+    |> Enum.map(&(IO.puts("Invoking resolver")))
 
-            %{stack: remaining |> stack_push(new_parent), current: current, operations: operations}
-        end
+    %ResultSet{data: %{}, errors: %{}}
+  end
 
-      _ ->
-        {top, remaining} = stack |> stack_pop
-        new_top = top |> stack_push({line |> preprocess_line |> String.to_atom, %{}})
-
-        %{stack: remaining |> stack_push(new_top), current: current, operations: operations}
-    end
+  @doc false
+  defp resolver_tree(query, schema) do
+    {query, %{}}
   end
 
   @doc false
