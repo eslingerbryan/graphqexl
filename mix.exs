@@ -32,7 +32,7 @@ defmodule Graphqexl.MixProject do
         ],
         licenses: ["MIT"],
         links: %{
-          repo: "https://github.com/eslingerbryan/graphqexl",
+          github: "https://github.com/eslingerbryan/graphqexl",
           graphql: "https://graphql.org/"
         }
       },
