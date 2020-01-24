@@ -7,6 +7,7 @@ defmodule Graphqexl.MixProject do
     [
       app: :graphqexl,
       version: @version,
+      docs: docs(),
       elixir: "~> 1.9",
       elixirc_paths: elixirc_paths(Mix.env()),
       compilers: [:gettext] ++ Mix.compilers(),
@@ -31,7 +32,7 @@ defmodule Graphqexl.MixProject do
         ],
         licenses: ["MIT"],
         links: %{
-          repo: "https://github.com/eslingerbryan/graphqexl",
+          github: "https://github.com/eslingerbryan/graphqexl",
           graphql: "https://graphql.org/"
         }
       },
@@ -57,11 +58,35 @@ defmodule Graphqexl.MixProject do
   defp deps do
     [
       {:authex, "~> 2.0"},
-      {:credo, "~> 1.1.0", only: [:dev, :test], runtime: false},
+      {:credo, "~> 1.1.0", only: :dev, runtime: false},
       {:ex_doc, ">= 0.0.0", only: :dev, runtime: false},
       {:gettext, "~> 0.11"},
-      {:inflex, "~> 2.0.0"},
       {:jason, "~> 1.0"},
+    ]
+  end
+
+  defp docs do
+    [
+      main: "overview",
+      formatters: ["html", "epub"],
+      extras: extras(),
+      groups_for_extras: groups_for_extras()
+    ]
+  end
+
+  defp extras do
+    [
+      "guides/Overview.md",
+      "guides/Schema.md",
+      "examples/Basic.md",
+      "examples/SOA Orchestration.md",
+    ]
+  end
+
+  defp groups_for_extras do
+    [
+      "Guides": ~r/guides\/[^\/]+\.md/,
+      "Examples": ~r/examples\/[^\/]+\.md/,
     ]
   end
 
