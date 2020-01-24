@@ -30,6 +30,9 @@ defmodule Graphqexl.Query do
   @open_argument "("
   @opening_brace "{"
 
+  @identifier "[_a-z][_a-zA-Z0-9]+"
+  @operation_pattern ~r/(?<type>#{@identifier})?\s?(?<name>#{@identifier})\(?(?<fields>.*)\)?\s\{/
+
   @doc """
   Execute the given `t:Graphqexl.Query.t/0`
 
@@ -57,7 +60,7 @@ defmodule Graphqexl.Query do
     |> String.split("\n")
     |> Enum.map(&String.trim/1)
     |> Enum.map(&(String.replace(&1, "\n{", "{")))
-    |> Enum.reduce(%{stack: [], treex: %Tree{}}, &tokenize/2)
+    |> Enum.reduce(%{stack: [], operations: []}, &tokenize_operations/2)
   end
 
   @doc """
@@ -72,33 +75,93 @@ defmodule Graphqexl.Query do
   end
 
   @doc false
-  defp tokenize(line, %{stack: stack, treex: tree}) do
-    unbraced =
-      [@closing_brace, @opening_brace]
-      |> Enum.reduce(line, &(String.replace(&1, "\n#{@opening_brace}", @opening_brace)))
+  defp tokenize_operations(lines, %{stack: stack, operations: operations}) do
+    %{type: type, name: name, arguments: arguments} =
+      @operation_pattern |> Regex.named_captures(lines)
+    operation = %Operation{
+      type: type |> String.to_atom,
+      name: name,
+      arguments: arguments,
+      fields: %{}
+    }
+    new_operation = operation |> Operation.add_field(lines |> String.trim |> String.to_atom)
+  end
 
-    {new_stack, new_treex} =
+  @doc false
+  def tokenize_arguments(line, %{stack: stack, fields: fields}) do
+
+
+    {new_stack, new_fields} =
       if line |> String.starts_with?(@comment_char) do
-        {stack, tree}
+        {stack, fields}
       else
-        new_stack = case line |> String.at(-1) do
-          @opening_brace -> stack |> List.insert_at(0, new_treex)
+        name =
+          line
+          |> String.replace(@opening_brace, "")
+          |> String.trim
+          |> String.to_atom
+        case line |> String.at(-1) do
+          @opening_brace ->
+            """
+            getPost(id: "foo") {
+              author {
+                firstName
+                lastName
+              }
+              comments {
+                author {
+                  firstName
+                  lastName
+                }
+                text
+              }
+              title
+              text
+            }
+
+            %{
+              author: %{
+                firstName: true
+                lastName: true
+              },
+              comments: %{
+                author: %{
+                  firstName: true
+                  lastName: true
+                },
+                text: true
+              },
+              title: true
+              text: true
+            }
+            """
+            {
+              stack
+              |> List.insert_at(0, %{
+                name: name,
+                value: true
+              }),
+              fields
+            }
+
           @closing_brace ->
-            {node, remaining} = stack |> List.pop_at(0)
-            [node] |> Traverse.tree_insert(tree)
-            remaining
-          _ -> stack
+            {field, remaining} = stack |> List.pop_at(0)
+            {remaining, fields |> List.insert_at(0, field)}
+
+          _ ->
+            {field, rest} = stack |> List.pop_at(0)
+            new_field =
+              field
+              |> Map.update(
+                   :value,
+                   %{},
+                   &(Map.update(&1, name, true, fn val -> val end))
+                 )
+            {stack |> List.insert_at(0, new_field), fields}
         end
-
-        new_treex = Traverse.tree_insert(
-          %Tree{value: unbraced, children: []},
-          stack |> List.first
-        )
-
-        {new_stack, new_treex}
       end
 
-    %{stack: new_stack, treex: new_treex}
+    %{stack: new_stack, fields: new_fields}
   end
 
   @doc false
