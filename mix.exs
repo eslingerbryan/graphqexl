@@ -94,7 +94,6 @@ defmodule Graphqexl.MixProject do
   defp docs do
     [
       main: "overview",
-      extra_section: "GUIDES",
       formatters: ["html", "epub"],
       extras: extras(),
       groups_for_extras: groups_for_extras()
@@ -103,13 +102,17 @@ defmodule Graphqexl.MixProject do
 
   defp extras do
     [
-      "guides/overview.md",
+      "guides/Overview.md",
+      "guides/Schema.md",
+      "examples/Basic.md",
+      "examples/SOA Orchestration.md",
     ]
   end
 
   defp groups_for_extras do
     [
-      "Overview": ~r/guides\/[^\/]+\.md/,
+      "Guides": ~r/guides\/[^\/]+\.md/,
+      "Examples": ~r/examples\/[^\/]+\.md/,
     ]
   end
 
