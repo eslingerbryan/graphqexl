@@ -61,7 +61,6 @@ defmodule Graphqexl.MixProject do
       {:credo, "~> 1.1.0", only: [:dev, :test], runtime: false},
       {:ex_doc, ">= 0.0.0", only: :dev, runtime: false},
       {:gettext, "~> 0.11"},
-      {:inflex, "~> 2.0.0"},
       {:jason, "~> 1.0"},
     ]
   end
