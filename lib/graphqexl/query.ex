@@ -146,16 +146,6 @@ defmodule Graphqexl.Query do
   end
 
   @doc false
-  defp stack_pop(stack) do
-    stack |> List.pop_at(0)
-  end
-
-  @doc false
-  defp stack_push(stack, value) do
-    stack |> List.insert_at(0, value)
-  end
-
-  @doc false
   defp new_field(line) do
     {
       line |> String.trim |> String.to_atom,
@@ -171,9 +161,33 @@ defmodule Graphqexl.Query do
     %Operation{
       type: type |> String.to_atom,
       name: name,
-      arguments: arguments,
+      arguments: arguments |> tokenize_arguments,
       fields: %{}
     }
+  end
+
+  @doc false
+  defp tokenize_arguments(arguments) do
+    arguments
+    |> String.replace(@close_argument, "")
+    |> String.replace(@open_argument, "")
+    |> String.split("\n")
+    |> Enum.map(&(
+      %{
+        name: String.split(&1, ":") |> elem(0),
+        value: String.split(&1, ":") |> elem(1)
+      }
+    ))
+  end
+
+  @doc false
+  defp stack_pop(stack) do
+    stack |> List.pop_at(0)
+  end
+
+  @doc false
+  defp stack_push(stack, value) do
+    stack |> List.insert_at(0, value)
   end
 
   @doc false
