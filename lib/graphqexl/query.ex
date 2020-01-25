@@ -6,7 +6,7 @@ alias Graphqexl.Query.{
 alias Graphqexl.Schema
 alias Treex.{
   Traverse,
-  Tree
+  Tree,
 }
 
 defmodule Graphqexl.Query do
@@ -60,7 +60,7 @@ defmodule Graphqexl.Query do
     |> String.split("\n")
     |> Enum.map(&String.trim/1)
     |> Enum.map(&(String.replace(&1, "\n{", "{")))
-    |> Enum.reduce(%{stack: [], operations: []}, &tokenize_operations/2)
+    |> Enum.reduce(%{stack: [], current: nil, fields: [], operations: []}, &tokenize/2)
   end
 
   @doc """
@@ -75,93 +75,105 @@ defmodule Graphqexl.Query do
   end
 
   @doc false
-  defp tokenize_operations(lines, %{stack: stack, operations: operations}) do
+  def tokenize(line, %{stack: stack, current: current, fields: fields, operations: operations}) do
+    """
+    getPost(id: "foo") {
+      author {
+        firstName
+        lastName
+      }
+      comments {
+        author {
+          firstName
+          lastName
+        }
+        text
+      }
+      title
+      text
+    }
+
+    %{
+      author: %{
+        firstName: %{}
+        lastName: %{}
+      },
+      comments: %{
+        author: %{
+          firstName: %{}
+          lastName: %{}
+        },
+        text: %{}
+      },
+      title: %{}
+      text: %{}
+    }
+    """
+    case line |> String.at(-1) do
+      @opening_brace ->
+        if is_nil(current) do
+          {stack, line |> new_operation(current), [], operations}
+        else
+          {stack |> stack_push([]), current, fields |> stack_push(line |> new_field), operations}
+        end
+
+      @closing_brace ->
+        {current_fields, remaining} = stack |> stack_pop
+
+        if remaining |> Enum.empty? do
+          {top, rest} = fields |> stack_pop
+          new_top = {top |> elem(0), current_fields}
+          new_fields = rest |> stack_push(new_top)
+
+          {remaining, current, new_fields, operations}
+        else
+          new_operations =
+            operations
+            |> stack_push(
+              fields
+              |> Enum.reduce(current, &(Operation.add_field(&2, &1)))
+            )
+
+          {stack, nil, [], new_operations}
+        end
+
+      _ ->
+        {top, remaining} = stack |> stack_pop
+        new_top = top |> stack_push(line |> new_field)
+
+        {remaining |> stack_push(new_top), current, fields, operations}
+    end
+  end
+
+  @doc false
+  defp stack_pop(stack) do
+    stack |> List.pop_at(0)
+  end
+
+  @doc false
+  defp stack_push(stack, value) do
+    stack |> List.insert_at(0, value)
+  end
+
+  @doc false
+  defp new_field(line) do
+    {
+      line |> String.trim |> String.to_atom,
+      %{}
+    }
+  end
+
+  @doc false
+  defp new_operation(line, current) do
     %{type: type, name: name, arguments: arguments} =
-      @operation_pattern |> Regex.named_captures(lines)
-    operation = %Operation{
+      @operation_pattern |> Regex.named_captures(line)
+
+    %Operation{
       type: type |> String.to_atom,
       name: name,
       arguments: arguments,
       fields: %{}
     }
-    new_operation = operation |> Operation.add_field(lines |> String.trim |> String.to_atom)
-  end
-
-  @doc false
-  def tokenize_arguments(line, %{stack: stack, fields: fields}) do
-
-
-    {new_stack, new_fields} =
-      if line |> String.starts_with?(@comment_char) do
-        {stack, fields}
-      else
-        name =
-          line
-          |> String.replace(@opening_brace, "")
-          |> String.trim
-          |> String.to_atom
-        case line |> String.at(-1) do
-          @opening_brace ->
-            """
-            getPost(id: "foo") {
-              author {
-                firstName
-                lastName
-              }
-              comments {
-                author {
-                  firstName
-                  lastName
-                }
-                text
-              }
-              title
-              text
-            }
-
-            %{
-              author: %{
-                firstName: true
-                lastName: true
-              },
-              comments: %{
-                author: %{
-                  firstName: true
-                  lastName: true
-                },
-                text: true
-              },
-              title: true
-              text: true
-            }
-            """
-            {
-              stack
-              |> List.insert_at(0, %{
-                name: name,
-                value: true
-              }),
-              fields
-            }
-
-          @closing_brace ->
-            {field, remaining} = stack |> List.pop_at(0)
-            {remaining, fields |> List.insert_at(0, field)}
-
-          _ ->
-            {field, rest} = stack |> List.pop_at(0)
-            new_field =
-              field
-              |> Map.update(
-                   :value,
-                   %{},
-                   &(Map.update(&1, name, true, fn val -> val end))
-                 )
-            {stack |> List.insert_at(0, new_field), fields}
-        end
-      end
-
-    %{stack: new_stack, fields: new_fields}
   end
 
   @doc false
