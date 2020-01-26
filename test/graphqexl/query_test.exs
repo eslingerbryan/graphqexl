@@ -60,11 +60,13 @@ defmodule Graphqexl.Schema.QueryTest do
   test "parse" do
     input =
       """
+      # comments don't count
       query getSinglePost($postId: "foo") {
         getPost(id: $postId) {
           title
           text
           author {
+            # comment can be anywhere
             firstName
             lastName
           }
@@ -84,7 +86,7 @@ defmodule Graphqexl.Schema.QueryTest do
         %Operation{
           name: :getPost,
           arguments: %{
-            id: "$postId"
+            id: :postId
           },
           fields: %{
             title: %{},
