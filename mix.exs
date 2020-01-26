@@ -17,7 +17,7 @@ defmodule Graphqexl.MixProject do
       releases: [
         stable: [
           include_executables_for: [:unix],
-          applications: [graphqexl: :permanent, runtime_tools: :permanent],
+          applications: [graphqexl: :permanent],
         ],
       ],
       description: "Fully-loaded, pure-Elixir GraphQL server implementation with developer tools",
@@ -46,7 +46,7 @@ defmodule Graphqexl.MixProject do
     [
       description: 'Fully-loaded, pure-Elixir GraphQL server implementation with developer tools',
       mod: {Graphqexl.Application, []},
-      extra_applications: [:logger, :runtime_tools],
+      extra_applications: [:logger],
       vsn: @version |> to_charlist,
     ]
   end
@@ -62,6 +62,7 @@ defmodule Graphqexl.MixProject do
       {:ex_doc, ">= 0.0.0", only: :dev, runtime: false},
       {:gettext, "~> 0.11"},
       {:jason, "~> 1.0"},
+      {:plug, ">= 0.1.0"}
     ]
   end
 
