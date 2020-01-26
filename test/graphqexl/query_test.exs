@@ -60,11 +60,21 @@ defmodule Graphqexl.Schema.QueryTest do
   test "parse" do
     input =
       """
-      getPost(id: "foo") {
-        title
-        text
-        author {
-          name
+      query getSinglePost($postId: "foo") {
+        getPost(id: $postId) {
+          title
+          text
+          author {
+            firstName
+            lastName
+          }
+          comments {
+            author {
+              firstName
+              lastName
+            }
+            text
+          }
         }
       }
       """
@@ -72,21 +82,34 @@ defmodule Graphqexl.Schema.QueryTest do
     expected = %Graphqexl.Query{
       operations: [
         %Operation{
-          name: :getSinglePost,
+          name: :getPost,
           arguments: %{
-            id: "foo"
+            id: "$postId"
           },
           fields: %{
-            title: true,
-            text: true,
+            title: %{},
+            text: %{},
             author: %{
-              name: true,
+              firstName: %{},
+              lastName: %{},
             },
+            comments: %{
+              author: %{
+                firstName: %{},
+                lastName: %{},
+              },
+              text: %{},
+            }
           },
+          type: :query,
+          user_defined_name: :getSinglePost,
+          variables: %{
+            postId: "foo",
+          }
         },
       ]
     }
 
-    assert Graphqexl.Query.tokenize(input) == expected
+    assert Graphqexl.Query.parse(input) == expected
   end
 end

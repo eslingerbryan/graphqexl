@@ -31,9 +31,9 @@ defmodule Graphqexl.Query do
   @opening_brace "{"
 
   @identifier "[_a-z][_a-zA-Z0-9]+"
-  @type_pattern "?<type>#{@identifier}"
+  @type_pattern "?<type>(query|mutation|subscription)"
   @name_pattern "?<name>#{@identifier}"
-  @operation_pattern ~r/(#{@type_pattern})?\s?(#{@name_pattern})(?<arguments>\(?\(\$.*\))?\s\{/
+  @operation_pattern ~r/(#{@type_pattern})?\s?(#{@name_pattern})(?<arguments>\(?\(\$?.*\))?\s\{/
 
   @doc """
   Execute the given `t:Graphqexl.Query.t/0`
@@ -91,11 +91,15 @@ defmodule Graphqexl.Query do
       text: %{}
     }
     """
-    gql
-    |> String.split("\n")
-    |> Enum.map(&String.trim/1)
-    |> Enum.map(&(String.replace(&1, "\n{", "{")))
-    |> Enum.reduce(%{stack: [], current: nil, fields: [], operations: []}, &tokenize/2)
+    operations =
+      gql
+      |> String.trim
+      |> String.split("\n")
+      |> Enum.map(&String.trim/1)
+      |> Enum.map(&(String.replace(&1, "\n{", "{")))
+      |> Enum.reduce(%{stack: [], current: nil, operations: []}, &tokenize/2)
+      |> Map.get(:operations)
+    %Graphqexl.Query{operations: operations}
   end
 
   @doc """
@@ -110,55 +114,81 @@ defmodule Graphqexl.Query do
   end
 
   @doc false
-  def tokenize(line, %{stack: stack, current: current, fields: fields, operations: operations}) do
+  def tokenize(line, %{stack: stack, current: current, operations: operations}) do
     case line |> String.at(-1) do
       @opening_brace ->
-        if is_nil(current) do
-          {stack, line |> new_operation(current), [], operations}
-        else
-          {stack |> stack_push([]), current, fields |> stack_push(line |> new_field), operations}
-        end
+      case stack |> Enum.count do
+        0 ->
+          if is_nil(current) do
+            %{stack: stack, current: line |> new_operation(current), operations: operations}
+          else
+            if line |> String.contains?(":") do
+              %{"type" => type, "name" => name, "arguments" => arguments} =
+                %{"type" => "query"} |> Map.merge(@operation_pattern |> Regex.named_captures(line))
+              new_current = %{current | name: name |> String.to_atom, arguments: arguments |> tokenize_arguments}
+              %{stack: stack |> stack_push([]), current: new_current, operations: operations}
+            else
+              %{stack: stack |> stack_push([]), current: current, operations: operations}
+            end
+          end
+        _ ->
+          {top, remaining} = stack |> stack_pop
+          new_top =
+            top
+            |> stack_push({
+              line
+              |> String.replace(",", "")
+              |> String.replace(@closing_brace, "")
+              |> String.replace(@opening_brace, "")
+              |> String.trim
+              |> String.to_atom,
+              %{}
+            })
+          new_stack = remaining |> stack_push(new_top) |> stack_push([])
+          %{stack: new_stack, current: current, operations: operations}
+      end
 
       @closing_brace ->
-        {current_fields, remaining} = stack |> stack_pop
+        case stack |> Enum.count do
+          0 ->
+            %{stack: [], current: nil, operations: operations}
+          1 ->
+            new_operations =
+              operations
+              |> stack_push(%{current | fields: stack |> stack_pop |> elem(0) |> Enum.into(%{})})
+            %{stack: [], current: nil, operations: new_operations}
+          _ ->
+            {top, rest} = stack |> stack_pop
+            {new_top, remaining} = rest |> stack_pop
+            {parent, others} = new_top |> stack_pop
+            new_parent = others |> stack_push({parent |> elem(0), top |> Enum.into(%{})})
 
-        if remaining |> Enum.empty? do
-          {top, rest} = fields |> stack_pop
-          new_top = {top |> elem(0), current_fields}
-          new_fields = rest |> stack_push(new_top)
-
-          {remaining, current, new_fields, operations}
-        else
-          new_operations =
-            operations
-            |> stack_push(
-              fields
-              |> Enum.reduce(current, &(Operation.add_field(&2, &1)))
-            )
-
-          {stack, nil, [], new_operations}
+            %{stack: remaining |> stack_push(new_parent), current: current, operations: operations}
         end
 
       _ ->
         {top, remaining} = stack |> stack_pop
-        new_top = top |> stack_push(line |> new_field)
+        new_top = top |> stack_push({
+          line
+          |> String.replace(",", "")
+          |> String.trim
+          |> String.to_atom,
+          %{}
+        })
 
-        {remaining |> stack_push(new_top), current, fields, operations}
+        %{stack: remaining |> stack_push(new_top), current: current, operations: operations}
     end
   end
 
   @doc false
-  defp new_field(line) do
-    {
-      line |> String.trim |> String.to_atom,
-      %{}
-    }
+  defp new_field(name, current) do
+    current |> Map.update(name, %{}, &(&1))
   end
 
   @doc false
   defp new_operation(line, current) do
-    %{type: type, name: name, arguments: arguments} =
-      @operation_pattern |> Regex.named_captures(line)
+    %{"type" => type, "name" => name, "arguments" => arguments} =
+      %{"type" => "query"} |> Map.merge(@operation_pattern |> Regex.named_captures(line))
 
     parsed = arguments |> tokenize_arguments
 
@@ -166,7 +196,7 @@ defmodule Graphqexl.Query do
 
     %Operation{
       type: type |> String.to_atom,
-      name: name,
+      user_defined_name: name |> String.to_atom,
       arguments: if var? do %{} else parsed end,
       fields: %{},
       variables: if var? do parsed else %{} end
@@ -176,17 +206,17 @@ defmodule Graphqexl.Query do
   @doc false
   defp tokenize_arguments(variables) do
     variables
+    |> String.replace(@closing_brace, "")
+    |> String.replace(@opening_brace, "")
     |> String.replace(@close_argument, "")
     |> String.replace(@open_argument, "")
     |> String.replace(",", "")
-    |> String.replace("$", "")
+    |> String.replace(": ", ":")
     |> String.split(" ")
-    |> Enum.map(&(
-      %{
-        name: String.split(&1, ":") |> elem(0),
-        value: String.split(&1, ":") |> elem(1)
-      }
-    ))
+    |> Enum.reduce(%{}, fn (arg, vars) ->
+      [name, value] = arg |> String.split(":")
+      vars |> Map.update(name |> String.replace("$", "") |> String.to_atom, value |> String.replace("\"", ""), &(&1))
+    end)
   end
 
   @doc false
