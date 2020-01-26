@@ -9,6 +9,7 @@ defmodule Graphqexl.Query.Operation do
     arguments: %{},
     fields: %{},
     name: "",
+    user_defined_name: "",
     result: %ResultSet{},
     type: :type,
     variables: %{}
@@ -19,6 +20,7 @@ defmodule Graphqexl.Query.Operation do
       arguments: Map.t,
       fields: Map.t,
       name: String.t,
+      user_defined_name: String.t,
       result: ResultSet.t,
       type: atom,
       variables: Map.t
