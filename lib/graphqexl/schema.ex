@@ -1,3 +1,4 @@
+alias Graphqexl.Query
 alias Graphqexl.Schema
 alias Graphqexl.Schema.{
   Dsl,
@@ -18,10 +19,12 @@ defmodule Graphqexl.Schema do
   """
 
   defstruct(
+    context: %{},
     enums: [],
     interfaces: [],
     mutations: [],
     queries: [],
+    resolvers: %{},
     str: "",
     subscriptions: [],
     types: [],
@@ -42,15 +45,29 @@ defmodule Graphqexl.Schema do
 
   @type t ::
           %Graphqexl.Schema{
+            context: ({Query.t, Map.t} -> Map.t),
             enums: list(TEnum.t),
             interfaces: list(Interface.t),
             mutations: list(Mutation.t),
             queries: list(Queries.t),
+            resolvers: Map.t,
             str: gql,
             subscriptions: list(Subscription.t),
             types: list(Type.t),
             unions: list(Union.t),
           }
+
+  @doc """
+  Builds an executable schema containing the schema definition as well as resolver map and context
+  factory.
+
+  Returns: `t:Graphqexl.Schema.t/0`
+  """
+  @doc since: "0.1.0"
+  @spec executable(gql, Map.t, Map.t | nil):: Graphqexl.Schema.t
+  def executable(gql_str, resolvers, context \\ nil) do
+    %{gql_str |> gql | resolvers: resolvers, context: context }
+  end
 
   @spec gql(gql | json) :: %Graphqexl.Schema{}
   @doc """
