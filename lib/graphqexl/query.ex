@@ -153,8 +153,11 @@ defmodule Graphqexl.Query do
     data =
       query.operations
       |> Enum.reduce(%{}, fn (operation) ->
-        schema.resolvers
-        |> Map.get(operation.name).(%{}, query.arguments, schema.context.(query, %{}))
+        schema.resolvers |> Map.get(operation.name).(
+          %{},
+          query.arguments,
+          schema.context.(query, %{})
+        )
       end)
     # TODO: intersect result with query.fields
     %ResultSet{data: data, errors: %{}}
