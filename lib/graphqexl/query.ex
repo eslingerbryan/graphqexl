@@ -13,8 +13,8 @@ defmodule Graphqexl.Query do
   or `t:Graphqexl.Query.json/0`.
   """
 
-  @type json :: Map.t
   @type gql :: String.t
+  @type json :: Map.t
   @type t :: %Graphqexl.Query{operations: [Operation.t]}
 
   defstruct operations: []
@@ -22,14 +22,14 @@ defmodule Graphqexl.Query do
   @close_argument ")"
   @closing_brace "}"
   @comment_char "#"
-  @variable_char "$"
   @delimiter ","
+  @identifier "[_a-z][_a-zA-Z0-9]+"
+  @name_pattern "?<name>#{@identifier}"
   @open_argument "("
   @opening_brace "{"
-
-  @identifier "[_a-z][_a-zA-Z0-9]+"
   @type_pattern "?<type>(query|mutation|subscription)"
-  @name_pattern "?<name>#{@identifier}"
+  @variable_char "$"
+
   @operation_pattern ~r/(#{@type_pattern})?\s?(#{@name_pattern})(?<arguments>\(?\(\$?.*\))?\s\{/
 
   @doc """
@@ -38,11 +38,11 @@ defmodule Graphqexl.Query do
   Returns: `t:Graphqexl.Query.ResultSet.t/0`
   """
   @doc since: "0.1.0"
-  @spec execute(Graphqexl.Query.t, Schema.t, Map.t) :: ResultSet.t
-  def execute(query, schema, resolvers) do
+  @spec execute(Graphqexl.Query.t, Schema.t) :: ResultSet.t
+  def execute(query, schema) do
     query
     |> validate!(schema)
-    |> resolve!(resolvers)
+    |> resolve!(schema)
   end
 
   @doc """
@@ -53,39 +53,6 @@ defmodule Graphqexl.Query do
   @doc since: "0.1.0"
   @spec parse(gql) :: Query.t
   def parse(gql) when is_binary(gql) do
-    """
-    getPost(id: "foo") {
-      author {
-        firstName
-        lastName
-      }
-      comments {
-        author {
-          firstName
-          lastName
-        }
-        text
-      }
-      title
-      text
-    }
-
-    %{
-      author: %{
-        firstName: %{}
-        lastName: %{}
-      },
-      comments: %{
-        author: %{
-          firstName: %{}
-          lastName: %{}
-        },
-        text: %{}
-      },
-      title: %{}
-      text: %{}
-    }
-    """
     %Graphqexl.Query{
       operations:
         gql
@@ -104,88 +71,6 @@ defmodule Graphqexl.Query do
   @spec parse(json) :: Query.t
   def parse(_json) do
     # convert bare map to %Query{}
-  end
-
-  @doc false
-  defp preprocess(gql) do
-    gql
-    |> pre_preprocess
-    |> String.split("\n")
-    |> Enum.map(&String.trim/1)
-    # This only works _after_ the map/trim above (otherwise the # may not be the first char)
-    |> Enum.filter(&(!String.starts_with?(&1, @comment_char)))
-    |> Enum.map(&(String.replace(&1, "\n#{@opening_brace}", @opening_brace)))
-  end
-
-  @doc false
-  defp pre_preprocess(gql) do
-    gql |> String.trim
-  end
-
-  @doc false
-  defp preprocess_line(line) do
-    line
-    |> String.replace(@delimiter, "")
-    |> String.replace(@closing_brace, "")
-    |> String.replace(@opening_brace, "")
-    |> String.trim
-  end
-
-  @doc false
-  defp postprocess_variables(variables) do
-    variables
-    |> String.replace(@close_argument, "")
-    |> String.replace(@open_argument, "")
-    |> String.replace(@variable_char, "")
-    |> preprocess_line
-  end
-
-  @doc false
-  defp preprocess_variables(variables) do
-    variables
-    |> String.replace(": ", ":")
-  end
-
-  @doc false
-  def tokenize(line, %{stack: stack, current: current, operations: operations}) do
-    case line |> String.at(-1) do
-      @opening_brace ->
-      case stack |> Enum.count do
-        0 ->
-          if is_nil(current) do
-            %{stack: stack, current: line |> new_operation, operations: operations}
-          else
-            if line |> String.contains?(":") do
-              %{"name" => name, "arguments" => arguments} =
-                %{"type" => "query"} |> Map.merge(@operation_pattern |> Regex.named_captures(line))
-              new_current = %{current | name: name |> String.to_atom, arguments: arguments |> tokenize_arguments}
-              %{stack: stack |> stack_push([]), current: new_current, operations: operations}
-            else
-              %{stack: stack |> stack_push([]), current: current, operations: operations}
-            end
-          end
-        _ ->
-          {top, remaining} = stack |> stack_pop
-          new_top =
-            top
-            |> stack_push({
-              line |> preprocess_line |> String.to_atom,
-              %{}
-            })
-          new_stack = remaining |> stack_push(new_top) |> stack_push([])
-          %{stack: new_stack, current: current, operations: operations}
-      end
-
-  defp resolve!({query, resolvers}) do
-    resolvers
-    |> Enum.map(&(IO.puts("Invoking resolver")))
-
-    %ResultSet{data: %{}, errors: %{}}
-  end
-
-  @doc false
-  defp resolver_tree(query, schema) do
-    {query, %{}}
   end
 
   @doc false
@@ -210,6 +95,131 @@ defmodule Graphqexl.Query do
   end
 
   @doc false
+  defp parse_value("false"), do: false
+  defp parse_value("true"), do: true
+  defp parse_value("null"), do: nil
+  defp parse_value(value) do
+    numeric? = Regex.match?(~r/"(\d+(\.\d+)?)"/, value)
+    string? = Regex.match?(~r/\"(.*)\"/, value)
+    cond do
+      numeric? -> value |> String.replace("\"", "")
+      string? -> value |> String.replace("\"", "")
+      true -> raise "Invalid type: expected a string, number, boolean or null, got #{value}"
+    end
+  end
+
+  @doc false
+  defp postprocess_variables(variables) do
+    variables
+    |> String.replace(@close_argument, "")
+    |> String.replace(@open_argument, "")
+    |> String.replace(@variable_char, "")
+    |> preprocess_line
+  end
+
+  @doc false
+  defp preprocess(gql) do
+    gql
+    |> pre_preprocess
+    |> String.split("\n")
+    |> Enum.map(&String.trim/1)
+    # This only works _after_ the map/trim above (otherwise the # may not be the first char)
+    |> Enum.filter(&(!String.starts_with?(&1, @comment_char)))
+    |> Enum.map(&(String.replace(&1, "\n#{@opening_brace}", @opening_brace)))
+  end
+
+  @doc false
+  defp preprocess_line(line) do
+    line
+    |> String.replace(@delimiter, "")
+    |> String.replace(@closing_brace, "")
+    |> String.replace(@opening_brace, "")
+    |> String.trim
+  end
+
+  @doc false
+  defp pre_preprocess(gql) do
+    gql |> String.trim
+  end
+
+  @doc false
+  defp preprocess_variables(variables) do
+    variables
+    |> String.replace(": ", ":")
+  end
+
+  @doc false
+  defp resolve!(_query, _resolvers) do
+    %ResultSet{data: %{}, errors: %{}}
+  end
+
+  @doc false
+  defp stack_pop(stack) do
+    stack |> List.pop_at(0)
+  end
+
+  @doc false
+  defp stack_push(stack, value) do
+    stack |> List.insert_at(0, value)
+  end
+
+  @doc false
+  defp tokenize(line, %{stack: stack, current: current, operations: operations}) do
+    case line |> String.at(-1) do
+      @opening_brace ->
+        case stack |> Enum.count do
+          0 ->
+            if is_nil(current) do
+              %{stack: stack, current: line |> new_operation, operations: operations}
+            else
+              if line |> String.contains?(":") do
+                %{"name" => name, "arguments" => arguments} =
+                  %{"type" => "query"} |> Map.merge(@operation_pattern |> Regex.named_captures(line))
+                new_current = %{current | name: name |> String.to_atom, arguments: arguments |> tokenize_arguments}
+                %{stack: stack |> stack_push([]), current: new_current, operations: operations}
+              else
+                %{stack: stack |> stack_push([]), current: current, operations: operations}
+              end
+            end
+          _ ->
+            {top, remaining} = stack |> stack_pop
+            new_top =
+              top
+              |> stack_push({
+                line |> preprocess_line |> String.to_atom,
+                %{}
+              })
+            new_stack = remaining |> stack_push(new_top) |> stack_push([])
+            %{stack: new_stack, current: current, operations: operations}
+        end
+
+      @closing_brace ->
+        case stack |> Enum.count do
+          0 ->
+            %{stack: [], current: nil, operations: operations}
+          1 ->
+            new_operations =
+              operations
+              |> stack_push(%{current | fields: stack |> stack_pop |> elem(0) |> Enum.into(%{})})
+            %{stack: [], current: nil, operations: new_operations}
+          _ ->
+            {top, rest} = stack |> stack_pop
+            {new_top, remaining} = rest |> stack_pop
+            {parent, others} = new_top |> stack_pop
+            new_parent = others |> stack_push({parent |> elem(0), top |> Enum.into(%{})})
+
+            %{stack: remaining |> stack_push(new_parent), current: current, operations: operations}
+        end
+
+      _ ->
+        {top, remaining} = stack |> stack_pop
+        new_top = top |> stack_push({line |> preprocess_line |> String.to_atom, %{}})
+
+        %{stack: remaining |> stack_push(new_top), current: current, operations: operations}
+    end
+  end
+
+  @doc false
   defp tokenize_arguments(nil), do: %{}
   defp tokenize_arguments(arguments) do
     arguments
@@ -231,30 +241,6 @@ defmodule Graphqexl.Query do
       [name, value] = arg |> String.split(":")
       vars |> Map.update(name |> postprocess_variables |> String.to_atom, value |> postprocess_variables |>  parse_value, &(&1))
     end)
-  end
-
-  @doc false
-  defp parse_value("false"), do: false
-  defp parse_value("true"), do: true
-  defp parse_value("null"), do: nil
-  defp parse_value(value) do
-    numeric? = Regex.match?(~r/"(\d+(\.\d+)?)"/, value)
-    string? = Regex.match?(~r/\"(.*)\"/, value)
-    cond do
-      numeric? -> value |> String.replace("\"", "")
-      string? -> value |> String.replace("\"", "")
-      true -> raise "Invalid type: expected a string, number, boolean or null, got #{value}"
-    end
-  end
-
-  @doc false
-  defp stack_pop(stack) do
-    stack |> List.pop_at(0)
-  end
-
-  @doc false
-  defp stack_push(stack, value) do
-    stack |> List.insert_at(0, value)
   end
 
   @doc false
