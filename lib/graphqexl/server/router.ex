@@ -12,6 +12,7 @@ defmodule Graphqexl.Server.Router do
   end
 
   post "/graphql" do
+    send_resp(conn, 200, "{\"data\":{},\"errors\":{}}")
     Logger.info("Finished request: [200] POST /graphql")
   end
 
