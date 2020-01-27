@@ -1,3 +1,5 @@
+alias Graphqexl.Query
+alias Graphqexl.Schema
 alias Graphqexl.Schema.{
   Dsl,
   Interface,
@@ -8,6 +10,7 @@ alias Graphqexl.Schema.{
   Type,
   Union,
 }
+alias Treex.Traverse
 
 defmodule Graphqexl.Schema do
   @moduledoc """
@@ -16,10 +19,12 @@ defmodule Graphqexl.Schema do
   """
 
   defstruct(
+    context: %{},
     enums: [],
     interfaces: [],
     mutations: [],
     queries: [],
+    resolvers: %{},
     str: "",
     subscriptions: [],
     types: [],
@@ -40,15 +45,29 @@ defmodule Graphqexl.Schema do
 
   @type t ::
           %Graphqexl.Schema{
+            context: ({Query.t, Map.t} -> Map.t),
             enums: list(TEnum.t),
             interfaces: list(Interface.t),
             mutations: list(Mutation.t),
             queries: list(Queries.t),
+            resolvers: Map.t,
             str: gql,
             subscriptions: list(Subscription.t),
             types: list(Type.t),
             unions: list(Union.t),
           }
+
+  @doc """
+  Builds an executable schema containing the schema definition as well as resolver map and context
+  factory.
+
+  Returns: `t:Graphqexl.Schema.t/0`
+  """
+  @doc since: "0.1.0"
+  @spec executable(gql, Map.t, Map.t | nil):: Graphqexl.Schema.t
+  def executable(gql_str, resolvers, context \\ nil) do
+    %{gql_str |> gql | resolvers: resolvers, context: context }
+  end
 
   @spec gql(gql | json) :: %Graphqexl.Schema{}
   @doc """
@@ -77,7 +96,18 @@ defmodule Graphqexl.Schema do
     %Graphqexl.Schema{}
   end
 
-  @spec register(GraphqexlSchema.t, component) :: Graphqexl.Schema.t
+  @doc """
+  Check whether a field is defined on the given schema.
+
+  Returns: `t:boolean`
+  """
+  @doc since: "0.1.0"
+  @spec has_field?(Schema.t, atom):: boolean
+  def has_field?(schema, field) do
+    !is_nil(Traverse.traverse(schema, &({:continue, &1}), :bfs))
+  end
+
+  @spec register(GraphqexlSchema.t, component):: Graphqexl.Schema.t
   @doc """
   Registers the given component on the given schema.
 

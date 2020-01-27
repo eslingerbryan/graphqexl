@@ -14,7 +14,7 @@ defmodule Mix.Tasks.Docker.Publish do
   @doc since: "0.1.0"
   @spec run([String.t]) :: :ok
   def run([image_name, image_repo, image_tag]) do
-    tag = image_tag || "#{git_sha}-dev"
+    tag = image_tag || "#{git_sha()}-dev"
     IO.puts "[STARTING] Publishing #{image_repo}/#{image_name}:#{tag}..."
 
     remote = docker_image(image_repo, image_name, tag)
@@ -54,7 +54,7 @@ defmodule Mix.Tasks.Docker.Publish do
 
   @doc false
   defp git_sha do
-    {sha, status} = System.cmd("git", ["rev-parse", "--short=7", "HEAD"])
+    {sha, _} = System.cmd("git", ["rev-parse", "--short=7", "HEAD"])
     sha |> String.trim
   end
 
