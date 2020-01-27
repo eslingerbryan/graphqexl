@@ -11,5 +11,6 @@ jobs:
     steps:
       - checkout
       - run: mix local.hex --force
-      - run: mix deps.get
+      - run: mix local.rebar --force
+      - run: mix do deps.get, deps.compile
       - run: mix test

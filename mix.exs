@@ -57,12 +57,13 @@ defmodule Graphqexl.MixProject do
   # Run "mix help deps" to learn about dependencies.
   defp deps do
     [
-      {:authex, "~> 2.0"},
+      {:cowboy, ">= 0.0.0"},
       {:credo, "~> 1.1.0", only: :dev, runtime: false},
       {:ex_doc, ">= 0.0.0", only: :dev, runtime: false},
       {:gettext, "~> 0.11"},
       {:jason, "~> 1.0"},
-      {:plug, ">= 0.1.0"}
+      {:plug, ">= 0.0.0"},
+      {:plug_cowboy, ">= 0.0.0"},
     ]
   end
 
