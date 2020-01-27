@@ -150,15 +150,15 @@ defmodule Graphqexl.Query do
 
   @doc false
   defp resolve!(query, schema) do
-    data =
-      query.operations
-      |> Enum.reduce(%{}, fn (operation) ->
-        schema.resolvers |> Map.get(operation.name).(
-          %{},
-          query.arguments,
-          schema.context.(query, %{})
-        )
-      end)
+    data = %{}
+#      query.operations
+#      |> Enum.reduce(%{}, fn (operation) ->
+#        schema.resolvers |> Map.get(operation.name).(
+#          %{},
+#          query.arguments,
+#          schema.context.(query, %{})
+#        )
+#      end)
     # TODO: intersect result with query.fields
     %ResultSet{data: data, errors: %{}}
   end
