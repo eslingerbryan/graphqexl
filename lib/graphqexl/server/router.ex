@@ -7,11 +7,16 @@ defmodule Graphqexl.Server.Router do
   plug Graphqexl.Server.Plug
 
   get "/graphql" do
-    Logger.info("Finished request")
-    send_resp(conn, 200, "hello world!")
+    Logger.info("Finished request: [200] GET /graphql")
+    send_resp(conn, 200, "GraphQExL Playground")
+  end
+
+  post "/graphql" do
+    Logger.info("Finished request: [200] POST /graphql")
   end
 
   match _ do
+    Logger.info("Finished request: [404]")
     send_resp(conn, 404, "oops")
   end
 end
