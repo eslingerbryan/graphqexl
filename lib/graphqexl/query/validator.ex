@@ -2,6 +2,7 @@ alias Graphqexl.{
   Query,
   Schema,
 }
+alias Graphqexl.Schema.Type
 
 defmodule Graphqexl.Query.Validator do
   @moduledoc "Validate a given query against a given schema"
@@ -20,20 +21,39 @@ defmodule Graphqexl.Query.Validator do
   end
 
   @doc false
-  defp scalar_leaves?(query, schema) do
+  defp has_all_required_arguments?(_query, _schema) do
     # TODO: implement
     true
+  end
+
+  @doc false
+  defp is_scalar?(field, schema) do
+    cond do
+      schema.enums |> Enum.member?(field) -> true
+      schema.types |> Enum.member?(field) -> Type.is_custom_scalar?(schema.types |> Map.get(field))
+      schema.unions |> Enum.any?(
+        &(&1.name == field &&
+          (is_scalar?(&1.type1, schema) || is_scalar?(&1.type2, schema)))
+      )
+    end
+  end
+
+  @doc false
+  defp leaves(_tree) do
+    []
+  end
+
+  @doc false
+  defp scalar_leaves?(query, schema) do
+    # TODO: implement
+    query.fields
+    |> leaves
+    |> Enum.filter(&(!is_scalar?(&1, schema)))
   end
 
   @doc false
   defp valid_types_and_fields?(query, schema) do
-    # TODO: implement
-    true
-  end
-
-  @doc false
-  defp has_all_required_arguments?(query, schema) do
-    # TODO: implement
-    true
+    query.fields
+    |> Enum.all?(&(Schema.has_field?(schema, &1)))
   end
 end

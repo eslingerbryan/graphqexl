@@ -1,3 +1,4 @@
+alias Graphqexl.Schema
 alias Graphqexl.Schema.{
   Dsl,
   Interface,
@@ -8,6 +9,7 @@ alias Graphqexl.Schema.{
   Type,
   Union,
 }
+alias Treex.Traverse
 
 defmodule Graphqexl.Schema do
   @moduledoc """
@@ -77,7 +79,18 @@ defmodule Graphqexl.Schema do
     %Graphqexl.Schema{}
   end
 
-  @spec register(GraphqexlSchema.t, component) :: Graphqexl.Schema.t
+  @doc """
+  Check whether a field is defined on the given schema.
+
+  Returns: `t:boolean`
+  """
+  @doc since: "0.1.0"
+  @spec has_field?(Schema.t, atom):: boolean
+  def has_field?(schema, field) do
+    !is_nil(Traverse.traverse(schema, &({:continue, &1}), :bfs))
+  end
+
+  @spec register(GraphqexlSchema.t, component):: Graphqexl.Schema.t
   @doc """
   Registers the given component on the given schema.
 
