@@ -7,12 +7,17 @@ defmodule Graphqexl.Server.Plug do
   end
 
   def call(conn, _opts) do
+    # content negotiation: application/json and application/graphql
+    {:ok, result} =
+      conn.body_params
+      |> Map.get("q")
+      |> Graphqexl.Query.parse
+      |> Graphqexl.Query.execute(conn.assigns[:schema])
+      |> (&(Jason.encode(%{data: &1.data, errors: &1.errors}))).()
+
     conn
-    # content negotation: application/json and application/graphql
-    # parse and execute query
-    # serialize result set
-    # send response
-    |> put_resp_content_type("text/plain")
-    |> send_resp(200, "Hello world")
+    |> put_resp_content_type("application/json")
+    # determine status
+    |> send_resp(200, result)
   end
 end

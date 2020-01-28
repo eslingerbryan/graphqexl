@@ -1,23 +1,160 @@
+alias Graphqexl.Schema.{
+  Field,
+  Interface,
+  Ref,
+  Required,
+  TEnum,
+  Type,
+  Union
+}
+
 defmodule Graphqexl.Server.Router do
   use Plug.Router
   require Logger
 
   plug :match
+  plug Plug.Parsers, parsers: [:urlencoded, :json],
+                     pass: ["text/*"],
+                     json_decoder: Jason
   plug :dispatch
-  plug Graphqexl.Server.Plug
 
-  get "/graphql" do
-    Logger.info("Finished request: [200] GET /graphql")
-    send_resp(conn, 200, "GraphQExL Playground")
+  def fake_resolver(_, _, _) do
+    []
   end
 
-  post "/graphql" do
-    send_resp(conn, 200, "{\"data\":{},\"errors\":{}}")
-    Logger.info("Finished request: [200] POST /graphql")
+  @resolvers %{
+    getPosts: &Graphqexl.Server.Router.fake_resolver/3
+  }
+
+  @schema %Graphqexl.Schema{
+    str: """
+    interface Timestamped, fields: %{createdAt: Datetime, updatedAt: Datetime}
+    type Datetime, String
+    type User, implements: Timestamped, fields: %{id: Id!, firstName: String, lastName: String, email: String, role: Role}
+    type Comment, implements: Timestamped, fields: %{id: Id!, author: User, text: String}
+    type Post, implements: Timestamped, fields: %{id: Id!, author: User, text: String, title: String}
+    union Content, Comment, Post
+    enum Role, [:AUTHOR, :EDITOR, :ADMIN]
+    Query { getPost(id: Id!): Post, getUserComments(userId: Id!): [Comment] }
+    Mutation { createPost(title: String, text: String!), authorId: Id!): Post }
+    schema, fields: %{query: Query, mutation: Mutation}
+    """,
+    enums: [
+      %TEnum{
+        name: "Role",
+        values: [:AUTHOR, :EDITOR, :ADMIN]
+      },
+    ],
+    interfaces: [
+      %Interface{
+        name: "Timestamped",
+        fields: %{
+          createdAt: %Field{
+            name: :createdAt,
+            value: %Ref{type: :Datetime}
+          },
+          updatedAt: %Field{
+            name: :updatedAt,
+            value: %Ref{type: :Datetime}
+          }
+        }
+      },
+    ],
+    queries: [],
+    mutations: [],
+    subscriptions: [],
+    types: [
+      %Type{name: "Datetime", implements: :String},
+      %Type{
+        name: "User",
+        implements: [
+          %Ref{type: :Timestamped},
+        ],
+        fields: [
+          %Required{
+            type: %Field{name: "id", value: :Id}
+          },
+          %Field{name: "email", value: :String},
+          %Field{name: "firstName", value: :String},
+          %Field{name: "lastName", value: :String},
+          %Field{
+            name: "role",
+            value: %Ref{type: :Role}
+          },
+        ]
+      },
+      %Type{
+        name: "Comment",
+        implements: [
+          %Ref{type: :Timestamped},
+        ],
+        fields: [
+          %Required{
+            type: %Field{name: "id", value: :Id}
+          },
+          %Field{
+            name: "author",
+            value: %Ref{type: :User}
+          },
+          %Field{
+            name: "parent",
+            value: %Ref{type: :Content}
+          },
+          %Field{name: "text", value: :String},
+        ]
+      },
+      %Type{
+        name: "Post",
+        implements: [
+          %Ref{type: :Timestamped},
+        ],
+        fields: [
+          %Required{
+            type: %Field{name: "id", value: :Id}
+          },
+          %Field{name: "title", value: :String},
+          %Field{name: "text", value: :String},
+          %Field{
+            name: "author",
+            value: %Ref{type: :User}
+          },
+          %Field{
+            name: "comments",
+            value: [
+              %Ref{type: :Comment}
+            ]
+          },
+        ]
+      },
+    ],
+    unions: [
+      %Union{
+        name: "Content",
+        type1: %Ref{type: :Comment},
+        type2: %Ref{type: :Post},
+      }
+    ]
+  }
+
+  get "/graphql" do
+    Logger.debug("Starting request: #{conn |> request_log_str}")
+    Logger.info("Finished request: #{conn |> request_log_str}")
+    Graphqexl.Server.Plug.call(conn, Graphqexl.Server.Plug.init([]))
+  end
+
+  post "/graphql", assigns: %{schema: @schema} do
+    Logger.debug("Starting request: #{conn |> request_log_str}")
+    Logger.info("Finished request: 200 #{conn |> request_log_str}")
+    Graphqexl.Server.Plug.call(conn, Graphqexl.Server.Plug.init([]))
   end
 
   match _ do
-    Logger.info("Finished request: [404]")
+    Logger.debug("Starting request: #{conn |> request_log_str}")
+    Logger.info("Finished request: #{conn |> request_log_str}")
     send_resp(conn, 404, "oops")
+  end
+
+  defp request_log_str(conn) do
+    "[#{conn.method |> String.upcase}] #{conn.request_path}"
   end
 end

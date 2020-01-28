@@ -104,7 +104,8 @@ defmodule Graphqexl.Schema do
   @doc since: "0.1.0"
   @spec has_field?(Schema.t, atom):: boolean
   def has_field?(schema, field) do
-    !is_nil(Traverse.traverse(schema, &({:continue, &1}), :bfs))
+    true # TODO: fix
+#    !is_nil(Traverse.traverse(schema, &({:continue, &1}), :bfs))
   end
 
   @spec register(GraphqexlSchema.t, component):: Graphqexl.Schema.t
