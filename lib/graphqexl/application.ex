@@ -1,6 +1,7 @@
 alias Graphqexl.Server.Router
 
 defmodule Graphqexl.Application do
+  require Logger
   # See https://hexdocs.pm/elixir/Application.html
   # for more information on OTP Applications
   @moduledoc false
@@ -8,6 +9,7 @@ defmodule Graphqexl.Application do
   use Application
 
   def start(_type, _args) do
+    Logger.info("Starting server at http://localhost:4000")
     children = [
       Plug.Cowboy.child_spec(scheme: :http, plug: Router, options: [port: 4000])
     ]

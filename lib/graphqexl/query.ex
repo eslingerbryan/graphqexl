@@ -211,7 +211,7 @@ defmodule Graphqexl.Query do
             new_operations =
               operations
               |> stack_push(%{current | fields: stack |> stack_pop |> elem(0) |> Enum.into(%{})})
-            %{stack: [], current: nil, operations: new_operations}
+            %{stack: [], current: current, operations: new_operations}
           _ ->
             {top, rest} = stack |> stack_pop
             {new_top, remaining} = rest |> stack_pop
@@ -255,6 +255,6 @@ defmodule Graphqexl.Query do
 
   @doc false
   defp validate!(query, schema) do
-    true = query |> Validator.valid?(schema)
+    true = query.operations |> Enum.all?(&(Validator.valid?(&1, schema)))
   end
 end
