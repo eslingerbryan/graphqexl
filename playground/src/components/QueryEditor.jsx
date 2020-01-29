@@ -1,10 +1,8 @@
 import React from "react";
 import Editor from "./QueryBrowser";
 import Prism from "prismjs";
-import "prismjs/components/prism-clike";
-import "prismjs/components/prism-javascript";
 
-class QueryEditor extends React.Component {
+export default class QueryEditor extends React.Component {
   constructor(props) {
     super(props);
 
@@ -30,5 +28,3 @@ class QueryEditor extends React.Component {
     );
   }
 }
-
-export default QueryEditor;
