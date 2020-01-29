@@ -14,3 +14,5 @@ jobs:
       - run: mix local.rebar --force
       - run: mix do deps.get, deps.compile
       - run: mix test
+      - run: curl -o- -L https://yarnpkg.com/install.sh | bash
+      - run: yarn && yarn build
