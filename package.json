@@ -19,11 +19,13 @@
     "clsx": "^1.0.4",
     "lodash": "^4.17.15",
     "parcel": "^1.12.4",
+    "prismjs": "^1.19.0",
     "prop-types": "^15.7.2",
     "react": ">=15",
     "react-blur-admin": "^0.11.1",
     "react-dom": "^16.12.0",
-    "react-router": "^5.1.2"
+    "react-router": "^5.1.2",
+    "react-simple-code-editor": "^0.11.0"
   },
   "devDependencies": {
     "@babel/core": "^7.0.0-0",
