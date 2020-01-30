@@ -179,7 +179,6 @@ defmodule Graphqexl.Schema.SchemaTest do
           }
         ]
       }
-      true
-#    assert Graphqexl.Schema.gql(input) == expected
+    assert Graphqexl.Schema.gql(input) == expected
   end
 end

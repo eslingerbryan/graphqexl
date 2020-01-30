@@ -48,7 +48,6 @@ defmodule Graphqexl.Schema.DslTest do
       schema, fields: %{query: Query, mutation: Mutation}
       """
 
-#    assert Dsl.preprocess(input) == expected |> String.trim
-    true
+    assert Dsl.preprocess(input) == expected |> String.trim
   end
 end
