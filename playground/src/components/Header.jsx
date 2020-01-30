@@ -1,4 +1,6 @@
 import React from "react";
+import graphqlIcon from "@iconify/icons-simple-icons/graphql";
+import { Icon } from "@iconify/react";
 import AppBar from "@material-ui/core/AppBar";
 import IconButton from "@material-ui/core/IconButton";
 import InputBase from "@material-ui/core/InputBase";
@@ -10,11 +12,15 @@ import AccountCircle from "@material-ui/icons/AccountCircle";
 import MenuIcon from "@material-ui/icons/Menu";
 import MoreIcon from "@material-ui/icons/MoreVert";
 import SearchIcon from "@material-ui/icons/Search";
+import red from "@material-ui/core/colors/red";
+import green from "@material-ui/core/colors/green";
 
 import styles from "../styles/main";
 
 export default function Header() {
   const classes = styles();
+
+  const connected = true;
 
   const [anchorEl, setAnchorEl] = React.useState(null);
   const [mobileMoreAnchorEl, setMobileMoreAnchorEl] = React.useState(null);
@@ -114,6 +120,12 @@ export default function Header() {
           </div>
           <div className={classes.grow} />
           <div className={classes.sectionDesktop}>
+            <IconButton style={{color: (connected ? green : red)[500]}}>
+              <Typography style={{margin: "auto 6px"}}>
+                http://localhost:4000/graphql
+              </Typography>
+              <Icon icon={graphqlIcon} width="24" height="24" />
+            </IconButton>
             <IconButton
               edge="end"
               aria-label="account of current user"
