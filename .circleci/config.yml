@@ -5,14 +5,14 @@ version: 2
 jobs:
   build:
     docker:
-      - image: circleci/elixir:1.9
+      - image: circleci/elixir:1.9-node
 
     working_directory: ~/repo
     steps:
       - checkout
+      - run: echo 'export MIX_ENV="test"' >> $BASH_ENV
       - run: mix local.hex --force
       - run: mix local.rebar --force
       - run: mix do deps.get, deps.compile
       - run: mix test
-      - run: curl -o- -L https://yarnpkg.com/install.sh | bash
       - run: yarn && yarn build
