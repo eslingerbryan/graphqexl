@@ -1,0 +1,99 @@
+{
+  "queries": [],
+  "mutations": [],
+  "subscriptions": [],
+  "types": [
+    {
+      "name": "Role",
+      "type": "enum",
+      "values": ["AUTHOR", "EDITOR", "ADMIN"]
+    },
+    {
+      "type": "interface",
+      "name": "Timestamped",
+      "fields": {
+        "createdAt": {
+          "name": "createdAt",
+          "value": {"type": "Datetime"}
+        },
+        "updatedAt": {
+          "name": "updatedAt",
+          "value": {"type": "Datetime"}
+        }
+      }
+    },
+    {"name": "Datetime",
+      "type": "type",
+      "implements": "String"},
+    {
+      "name": "User",
+      "type": "type",
+      "implements": [
+        {"type": "Timestamped"}
+      ],
+      "fields": [
+        {
+          "type": {"name": "id", "value": "Id"}
+        },
+        {"name": "email", "value": "String"},
+        {"name": "firstName", "value": "String"},
+        {"name": "lastName", "value": "String"},
+        {
+          "name": "role",
+          "value": {"type": "Role"}
+        }
+      ]
+    },
+    {
+      "name": "Comment",
+      "type": "type",
+      "implements": [
+        {"type": "Timestamped"}
+      ],
+      "fields": [
+        {
+          "type": {"name": "id", "value": "Id"}
+        },
+        {
+          "name": "author",
+          "value": {"type": "User"}
+        },
+        {
+          "name": "parent",
+          "value": {"type": "Content"}
+        },
+        {"name": "text", "value": "String"}
+      ]
+    },
+    {
+      "name": "Post",
+      "type": "type",
+      "implements": [
+        {"type": "Timestamped"}
+      ],
+      "fields": [
+        {
+          "type": {"name": "id", "value": "Id"}
+        },
+        {"name": "title", "value": "String"},
+        {"name": "text", "value": "String"},
+        {
+          "name": "author",
+          "value": {"type": "User"}
+        },
+        {
+          "name": "comments",
+          "value": [
+            {"type": "Comment"}
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Content",
+      "type": "union",
+      "type1": {"type": "Comment"},
+      "type2": {"type": "Post"}
+    }
+  ]
+}

@@ -23,3 +23,7 @@ erl_crash.dump
 graphqexl-*.tar
 
 mix.lock
+yarn-error.log
+node_modules/
+.cache/
+dist/
