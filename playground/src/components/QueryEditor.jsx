@@ -35,8 +35,7 @@ export default class QueryEditor extends React.Component {
     return (
       <div id="query-editor">
         <TextareaAutosize
-          defaultValue="Start typing your query..."
-          inputProps={{ 'aria-label': 'description' }}
+          placeholder="Start typing your query..."
           value={code}
           rowsMin={10}
           style={{width:"67%"}}
