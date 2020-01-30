@@ -40,12 +40,12 @@ defmodule Graphqexl.Schema.DslTest do
 
     expected =
       """
-      interface Timestamped, fields: %{createdAt: Datetime, updatedAt: Datetime}
-      type Datetime, String
-      type User, implements: Timestamped, fields: %{firstName: String, lastName: String, email: String, role: Role}
-      union Content, Comment, Post
-      enum Role, [:AUTHOR, :EDITOR, :ADMIN]
-      schema, fields: %{query: Query, mutation: Mutation}
+      interface :Timestamped, fields: %{createdAt: :Datetime, updatedAt: :Datetime}
+      type :Datetime, :String
+      type :User, implements: :Timestamped, fields: %{firstName: :String, lastName: :String, email: :String, role: :Role}
+      union :Content, :Comment, :Post
+      enum :Role, [:AUTHOR, :EDITOR, :ADMIN]
+      schema, fields: %{query: :Query, mutation: :Mutation}
       """
 
     assert Dsl.preprocess(input) == expected |> String.trim

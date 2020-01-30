@@ -17,7 +17,7 @@ defmodule Graphqexl.Schema.Dsl do
   @patterns %{
     name: "[_A-Z][_A-Za-z]+",
     enum_value: "[_A-Z0-9]+",
-    field_name: "[_a-z][_A-Za-z]",
+    field_name: "[_a-z][_A-Za-z]+",
   }
 
   @doc """
@@ -150,10 +150,12 @@ defmodule Graphqexl.Schema.Dsl do
   @doc false
   defp replace(gql) do
     gql
-    |> String.replace(" = ", ", ")
+    |> String.replace(" |", ", ")
     |> String.replace("{\n", ", fields: %{")
     |> String.replace(", }", "}")
     |> String.replace(", ]", "]")
+    |> String.replace("::", ": :")
+    |> String.replace(",:", ", :")
   end
 
   @doc false
@@ -166,11 +168,13 @@ defmodule Graphqexl.Schema.Dsl do
   @doc false
   defp transform(gql) do
     gql
+    |> regex_replace(~r/\s?=\s?/, ", ")
     |> regex_replace(~r/enum (#{@patterns.name}) {\n/, "enum \\g{1}, [")
     |> regex_replace(~r/(#{@patterns.enum_value})\n/, ":\\g{1}, ")
     |> regex_replace(~r/(enum .*)}/, "\\g{1}]")
-    |> regex_replace(~r/(#{@patterns.field_name}:\s*#{@patterns.name})\n/, "\\g{1}, ")
+    |> regex_replace(~r/(#{@patterns.field_name}:\s*?#{@patterns.name})\n/, "\\g{1}, ")
     |> regex_replace(~r/\simplements\s(#{@patterns.name})\s/, ", implements: \\g{1}")
-    |> regex_replace(~r/(union #{@patterns.name}) (.*) \| (.*)/, "\\g{1} \\g{2}, \\g{3}")
+    |> regex_replace(~r/\s([_A-Z][_A-Za-z]+)/, ":\\g{1}")
+    |> regex_replace(~r/(enum|interface|type|union):/, "\\g{1} :")
   end
 end
