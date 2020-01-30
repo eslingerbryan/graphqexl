@@ -25,10 +25,10 @@ export default class HttpHeaders extends React.Component {
           </Grid>
           <Divider />
           <Grid item xs={3}>
-            <TextField id="header1" label="header" />
+            <TextField id="header2" label="header" />
           </Grid>
           <Grid item xs={9}>
-            <TextField id="value1" label="value" />
+            <TextField id="value2" label="value" />
           </Grid>
         </Grid>
       </form>
