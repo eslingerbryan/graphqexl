@@ -4,14 +4,25 @@ defmodule Graphqexl.Schema.Interface do
   @moduledoc """
   GraphQL Interface, encapsulating a group of fields to be shared between types
   """
-  defstruct name: "", fields: %{}, on: [], extend: %Ref{}
+  defstruct(
+    deprecated: false,
+    deprecation_reason: "",
+    description: "",
+    extend: nil,
+    fields: %{},
+    name: "",
+    on: []
+  )
 
   @type t ::
     %Graphqexl.Schema.Interface{
-      name: String.t(),
-      fields: Map.t(),
-      on: list(Map.t()),
-      extend: Ref.t()
+      deprecated: boolean,
+      deprecation_reason: String.t,
+      description: String.t,
+      name: String.t,
+      fields: Map.t,
+      on: list(Map.t),
+      extend: Ref.t | nil
     }
 
   @doc """

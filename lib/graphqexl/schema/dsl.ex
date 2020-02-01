@@ -1,8 +1,12 @@
 alias Graphqexl.Schema
 alias Graphqexl.Schema.{
+  Argument,
+  Field,
   Interface,
   Mutation,
   Query,
+  Ref,
+  Required,
   Subscription,
   TEnum,
   Type,
@@ -15,7 +19,7 @@ defmodule Graphqexl.Schema.Dsl do
   """
 
   @patterns %{
-    name: "[_A-Z][_A-Za-z]+",
+    name: "\[?[_A-Z][_A-Za-z]+!?\]?",
     enum_value: "[_A-Z0-9]+",
     field_name: "[_a-z][_A-Za-z]+",
   }
@@ -45,19 +49,12 @@ defmodule Graphqexl.Schema.Dsl do
   """
   @doc since: "0.1.0"
   def enum(schema, name, values) do
-    schema |> Schema.register(%TEnum{name: name, values: values})
+    schema |> Schema.register(%TEnum{name: name, values: values |> parse_enum_values})
   end
 
-  @doc """
-  Creates a new schema from the given spec
-
-  Returns `t:Graphqexl.Schema.t/0`
-
-  TODO: docstring examples
-  """
-  @doc since: "0.1.0"
-  def schema(_schema, fields: _fields) do
-
+  @doc false
+  defp parse_enum_values(values) do
+    values |> Enum.map(&String.to_atom/1)
   end
 
   @doc """
@@ -68,8 +65,18 @@ defmodule Graphqexl.Schema.Dsl do
   TODO: docstring examples
   """
   @doc since: "0.1.0"
-  def query(schema, fields: fields) do
-    schema |> Schema.register(%Query{fields: fields})
+  def query(schema, spec) do
+    %{"args" => args, "name" => name, "return" => return} =
+      Regex.named_captures(~r/(?<name>.*)\((?<args>.*)?\):(?<return>.*)/, spec)
+
+    schema
+    |> Schema.register(
+         %Query{
+           arguments: args |> parse_query_args,
+           name: name |> String.to_atom,
+           return: return |> parse_field_values
+         }
+       )
   end
 
   @doc """
@@ -80,8 +87,17 @@ defmodule Graphqexl.Schema.Dsl do
   TODO: docstring examples
   """
   @doc since: "0.1.0"
-  def mutation(schema, fields: fields) do
-    schema |> Schema.register(%Mutation{fields: fields})
+  def mutation(schema, spec) do
+    %{"args" => args, "name" => name, "return" => return} =
+      Regex.named_captures(~r/(?<name>.*)\((?<args>.*)?\):(?<return>.*)/, spec)
+    schema
+    |> Schema.register(
+         %Mutation{
+           arguments: args |> parse_query_args,
+           name: name |> String.to_atom,
+           return: %Ref{type: return |> String.to_atom}
+         }
+       )
   end
 
   @doc """
@@ -92,8 +108,17 @@ defmodule Graphqexl.Schema.Dsl do
   TODO: docstring examples
   """
   @doc since: "0.1.0"
-  def subscription(schema, fields: fields) do
-    schema |> Schema.register(%Subscription{fields: fields})
+  def subscription(schema, spec) do
+    %{"args" => args, "name" => name, "return" => return} =
+      Regex.named_captures(~r/(?<name>.*)\((?<args>.*)?\):(?<return>.*)/, spec)
+    schema
+    |> Schema.register(
+         %Subscription{
+           arguments: args |> parse_query_args,
+           name: name |> String.to_atom,
+           return: %Ref{type: return |> String.to_atom}
+         }
+       )
   end
 
   @doc """
@@ -104,8 +129,36 @@ defmodule Graphqexl.Schema.Dsl do
   TODO: docstring examples
   """
   @doc since: "0.1.0"
-  def type(schema, name, implements: implements, fields: fields) do
-    schema |> Schema.register(%Type{name: name, implements: implements, fields: fields})
+  def type(schema, name, nil, fields) do
+    schema
+    |> Schema.register(
+         %Type{
+           name: name,
+           implements: nil,
+           fields: fields |> parse_fields
+         }
+       )
+  end
+
+  def type(schema, name, implements) do
+    schema
+    |> Schema.register(
+         %Type{
+           name: name,
+           implements: %Ref{type: implements |> String.to_atom}
+         }
+       )
+  end
+
+  def type(schema, name, implements, fields) do
+    schema |>
+      Schema.register(
+        %Type{
+          name: name,
+          implements: %Ref{type: implements |> String.to_atom},
+          fields: fields |> parse_fields
+        }
+      )
   end
 
   @doc """
@@ -117,7 +170,14 @@ defmodule Graphqexl.Schema.Dsl do
   """
   @doc since: "0.1.0"
   def union(schema, name, type1, type2) do
-    schema |> Schema.register(%Union{name: name, type1: type1, type2: type2})
+    schema
+    |> Schema.register(
+         %Union{
+           name: name,
+           type1: %Ref{type: type1 |> String.to_atom},
+           type2: %Ref{type: type2 |> String.to_atom}
+         }
+       )
   end
 
   @doc """
@@ -128,19 +188,26 @@ defmodule Graphqexl.Schema.Dsl do
   TODO: docstring examples
   """
   @doc since: "0.1.0"
-  def interface(schema, name, fields: fields) do
-    schema |> Schema.register(%Interface{name: name, fields: fields})
+  def interface(schema, name, fields) do
+    schema
+    |> Schema.register(
+         %Interface{
+           name: name,
+           fields: fields |> parse_fields
+         }
+       )
   end
 
   @doc false
   defp compact(gql) do
     gql
+    |> String.replace("{", "")
+    |> String.replace("}", "")
+    |> regex_replace(~r/\s+/, " ")
+    |> regex_replace(~r/\t+/, " ")
     |> regex_replace(~r/\n+/, "\n")
-    |> regex_replace(~r/,+/, ",")
-    |> regex_replace(~r/(:|,)\s+/, "\\g{1}\s")
-    |> regex_replace(~r/{\s+/, "{")
-    |> regex_replace(~r/\[\s+/, "[")
-    |> String.replace(" ,", ",")
+    |> String.replace("@", "\n")
+    |> String.replace(" \n", "\n")
     |> String.trim
   end
 
@@ -150,31 +217,124 @@ defmodule Graphqexl.Schema.Dsl do
   @doc false
   defp replace(gql) do
     gql
-    |> String.replace(" |", ", ")
-    |> String.replace("{\n", ", fields: %{")
-    |> String.replace(", }", "}")
-    |> String.replace(", ]", "]")
-    |> String.replace("::", ": :")
-    |> String.replace(",:", ", :")
+    |> regex_replace(~r/\s?\|\s?/, " ")
+    |> String.replace(",", "")
+    |> String.replace(": ", ":")
   end
 
   @doc false
   defp strip(gql) do
-    gql
-    |> (& Regex.replace(~r/#.*/, &1, "")).()
-    |> String.replace(",", "")
+    gql |> regex_replace(~r/#.*/, "")
   end
 
   @doc false
   defp transform(gql) do
     gql
-    |> regex_replace(~r/\s?=\s?/, ", ")
-    |> regex_replace(~r/enum (#{@patterns.name}) {\n/, "enum \\g{1}, [")
-    |> regex_replace(~r/(#{@patterns.enum_value})\n/, ":\\g{1}, ")
-    |> regex_replace(~r/(enum .*)}/, "\\g{1}]")
-    |> regex_replace(~r/(#{@patterns.field_name}:\s*?#{@patterns.name})\n/, "\\g{1}, ")
-    |> regex_replace(~r/\simplements\s(#{@patterns.name})\s/, ", implements: \\g{1}")
-    |> regex_replace(~r/\s([_A-Z][_A-Za-z]+)/, ":\\g{1}")
-    |> regex_replace(~r/(enum|interface|type|union):/, "\\g{1} :")
+    |> regex_replace(~r/(type.*\s?)=\s?/, "\\g{1} ^")
+    |> regex_replace(~r/(union.*\s?)=\s?/, "\\g{1} ")
+    |> regex_replace(~r/(#{@patterns.field_name}):\s*?(#{@patterns.name})\n/, "\\g{1}:\\g{2}")
+    |> regex_replace(~r/\simplements\s(#{@patterns.name})\s/, " \\g{1}")
+    |> regex_replace(~r/(enum|interface|schema|type|union)/, "@\\g{1}")
+  end
+
+  @doc false
+  defp parse_fields(fields) do
+    fields
+    |> Enum.map(&(String.split(&1, ":")))
+    |> Enum.map(&(
+      {
+        &1 |> List.first |> String.to_atom,
+        %Field{
+          name: &1 |> List.first |> String.to_atom,
+          value: &1 |> List.last |> parse_field_values
+        }
+      }))
+    |> Enum.into(%{})
+  end
+
+  @doc false
+  defp parse_field_values(value) do
+    %Ref{type: value |> String.to_atom}
+    |> maybe_required
+    |> maybe_list
+  end
+
+  @doc false
+  defp maybe_list(ref) do
+    if ref.type |> is_list? do ref |> list_field_value else ref end
+  end
+
+  @doc false
+  defp maybe_required(ref) do
+    if ref.type |> is_required? do ref |> required_field_value else ref end
+  end
+
+  @doc false
+  defp is_required?(component = %{type: _}) do
+    component.type |> is_required?
+  end
+
+  @doc false
+  defp is_required?(value) when is_atom(value), do: is_required?(value |> Atom.to_string)
+
+  @doc false
+  defp is_required?(value) do
+    value |> String.contains?("!")
+  end
+
+  @doc false
+  defp is_list?(component = %{type: _}) do
+    component.type |> is_list?
+  end
+
+  @doc false
+  defp is_list?(value) when is_atom(value), do: is_list?(value |> Atom.to_string)
+
+  @doc false
+  defp is_list?(value) do
+    value |> String.contains?("[")
+  end
+
+  @doc false
+  defp required_field_value(component = %Ref{}) do
+    %Ref{
+      type: %Required{type: "!" |> atomize_field_value(component.type)}
+    }
+  end
+
+  @doc false
+  defp list_field_value(component = %Ref{}) do
+    [%Ref{type: ["[", "]"] |> atomize_field_value(component.type)}]
+  end
+
+  @doc false
+  defp atomize_field_value(replace, value) when is_list(replace) do
+    replace |> Enum.reduce(value, &atomize_field_value/2)
+  end
+
+  @doc false
+  defp atomize_field_value(replace, value)
+       when is_atom(value), do: atomize_field_value(replace, value |> Atom.to_string)
+
+  @doc false
+  defp atomize_field_value(replace, value) when is_binary(value) do
+    value |> String.replace(replace, "") |> String.to_atom
+  end
+
+  @doc false
+  defp parse_query_args(args) do
+    args
+    |> String.split(";")
+    |> Enum.map(&(String.split(&1, ":")))
+    |> Enum.map(&(
+      {
+        &1 |> List.first |> String.to_atom,
+        %Argument{
+          name: &1 |> List.first |> String.to_atom,
+          type: &1 |> List.last |> parse_field_values
+        }
+      }
+    ))
+    |> Enum.into(%{})
   end
 end

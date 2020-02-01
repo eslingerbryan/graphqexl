@@ -27,18 +27,6 @@ defmodule Graphqexl.Server.Router do
   }
 
   @schema %Graphqexl.Schema{
-    str: """
-    interface Timestamped, fields: %{createdAt: Datetime, updatedAt: Datetime}
-    type Datetime, String
-    type User, implements: Timestamped, fields: %{id: Id!, firstName: String, lastName: String, email: String, role: Role}
-    type Comment, implements: Timestamped, fields: %{id: Id!, author: User, text: String}
-    type Post, implements: Timestamped, fields: %{id: Id!, author: User, text: String, title: String}
-    union Content, Comment, Post
-    enum Role, [:AUTHOR, :EDITOR, :ADMIN]
-    Query { getPost(id: Id!): Post, getUserComments(userId: Id!): [Comment] }
-    Mutation { createPost(title: String, text: String!), authorId: Id!): Post }
-    schema, fields: %{query: Query, mutation: Mutation}
-    """,
     enums: [
       %TEnum{
         name: "Role",

@@ -71,114 +71,271 @@ defmodule Graphqexl.Schema.SchemaTest do
 
     expected =
       %Graphqexl.Schema{
-        str: """
-        interface Timestamped, fields: %{createdAt: Datetime, updatedAt: Datetime}
-        type Datetime, String
-        type User, implements: Timestamped, fields: %{id: Id!, firstName: String, lastName: String, email: String, role: Role}
-        type Comment, implements: Timestamped, fields: %{id: Id!, author: User, text: String}
-        type Post, implements: Timestamped, fields: %{id: Id!, author: User, text: String, title: String}
-        union Content, Comment, Post
-        enum Role, [:AUTHOR, :EDITOR, :ADMIN]
-        Query { getPost(id: Id!): Post, getUserComments(userId: Id!): [Comment] }
-        Mutation { createPost(title: String, text: String!), authorId: Id!): Post }
-        schema, fields: %{query: Query, mutation: Mutation}
-        """,
-        enums: [
-          %TEnum{
-            name: "Role",
+        context: nil,
+        enums: %{
+          Role: %Graphqexl.Schema.TEnum{
+            deprecated: false,
+            deprecation_reason: "",
+            description: "",
+            name: :Role,
             values: [:AUTHOR, :EDITOR, :ADMIN]
-          },
-        ],
-        interfaces: [
-          %Interface{
-            name: "Timestamped",
+          }
+        },
+        interfaces: %{
+          Timestamped: %Graphqexl.Schema.Interface{
+            deprecated: false,
+            deprecation_reason: "",
+            description: "",
+            extend: nil,
             fields: %{
-              createdAt: %Field{
+              createdAt: %Graphqexl.Schema.Field{
+                deprecated: false,
+                deprecation_reason: "",
+                description: "",
                 name: :createdAt,
-                value: %Ref{type: :Datetime}
+                value: %Graphqexl.Schema.Ref{type: :Datetime}
               },
-              updatedAt: %Field{
+              updatedAt: %Graphqexl.Schema.Field{
+                deprecated: false,
+                deprecation_reason: "",
+                description: "",
                 name: :updatedAt,
-                value: %Ref{type: :Datetime}
+                value: %Graphqexl.Schema.Ref{type: :Datetime}
+              }
+            },
+            name: :Timestamped,
+            on: []
+          }
+        },
+        resolvers: %{},
+        subscriptions: %{},
+        unions: %{
+          Content: %Graphqexl.Schema.Union{
+            deprecated: false,
+            deprecation_reason: "",
+            description: "",
+            name: :Content,
+            type1: %Graphqexl.Schema.Ref{type: :Comment},
+            type2: %Graphqexl.Schema.Ref{type: :Post}
+          }
+        },
+        mutations: %{
+          createPost: %Graphqexl.Schema.Mutation{
+            deprecated: false,
+            deprecation_reason: "",
+            description: "",
+            name: :createPost,
+            return: %Graphqexl.Schema.Ref{type: :Post},
+            arguments: %{
+              authorId: %Graphqexl.Schema.Argument{
+                deprecated: false,
+                deprecation_reason: "",
+                description: "",
+                name: :authorId,
+                type: %Graphqexl.Schema.Ref{
+                  type: %Graphqexl.Schema.Required{type: :Id}
+                }
+              },
+              text: %Graphqexl.Schema.Argument{
+                deprecated: false,
+                deprecation_reason: "",
+                description: "",
+                name: :text,
+                type: %Graphqexl.Schema.Ref{
+                  type: %Graphqexl.Schema.Required{type: :String}
+                }
+              },
+              title: %Graphqexl.Schema.Argument{
+                deprecated: false,
+                deprecation_reason: "",
+                description: "",
+                name: :title,
+                type: %Graphqexl.Schema.Ref{type: :String}
               }
             }
-          },
-        ],
-        queries: [],
-        mutations: [],
-        subscriptions: [],
-        types: [
-          %Type{name: "Datetime", implements: :String},
-          %Type{
-            name: "User",
-            implements: [
-              %Ref{type: :Timestamped},
-            ],
-            fields: [
-              %Required{
-                type: %Field{name: "id", value: :Id}
-              },
-              %Field{name: "email", value: :String},
-              %Field{name: "firstName", value: :String},
-              %Field{name: "lastName", value: :String},
-              %Field{
-                name: "role",
-                value: %Ref{type: :Role}
-              },
-            ]
-          },
-          %Type{
-            name: "Comment",
-            implements: [
-              %Ref{type: :Timestamped},
-            ],
-            fields: [
-              %Required{
-                type: %Field{name: "id", value: :Id}
-              },
-              %Field{
-                name: "author",
-                value: %Ref{type: :User}
-              },
-              %Field{
-                name: "parent",
-                value: %Ref{type: :Content}
-              },
-              %Field{name: "text", value: :String},
-            ]
-          },
-          %Type{
-            name: "Post",
-            implements: [
-              %Ref{type: :Timestamped},
-            ],
-            fields: [
-              %Required{
-                type: %Field{name: "id", value: :Id}
-              },
-              %Field{name: "title", value: :String},
-              %Field{name: "text", value: :String},
-              %Field{
-                name: "author",
-                value: %Ref{type: :User}
-              },
-              %Field{
-                name: "comments",
-                value: [
-                  %Ref{type: :Comment}
-                ]
-              },
-            ]
-          },
-        ],
-        unions: [
-          %Union{
-            name: "Content",
-            type1: %Ref{type: :Comment},
-            type2: %Ref{type: :Post},
           }
-        ]
+        },
+        queries: %{
+          getUserComments: %Graphqexl.Schema.Query{
+            deprecated: false,
+            deprecation_reason: "",
+            description: "",
+            arguments: %{
+              userId: %Graphqexl.Schema.Argument{
+                deprecated: false,
+                deprecation_reason: "",
+                description: "",
+                name: :userId,
+                type: %Graphqexl.Schema.Ref{
+                  type: %Graphqexl.Schema.Required{type: :Id}
+                }
+              }
+            },
+            name: :getUserComments,
+            return: [%Graphqexl.Schema.Ref{type: :Comment}]
+          },
+          getPost: %Graphqexl.Schema.Query{
+            deprecated: false,
+            deprecation_reason: "",
+            description: "",
+            arguments: %{
+              id: %Graphqexl.Schema.Argument{
+                deprecated: false,
+                deprecation_reason: "",
+                description: "",
+                name: :id,
+                type: %Graphqexl.Schema.Ref{
+                  type: %Graphqexl.Schema.Required{type: :Id}
+                }
+              }
+            },
+            name: :getPost,
+            return: %Graphqexl.Schema.Ref{type: :Post}
+          }
+        },
+        types: %{
+          Post: %Graphqexl.Schema.Type{
+            deprecated: false,
+            deprecation_reason: "",
+            description: "",
+            fields: %{
+              author: %Graphqexl.Schema.Field{
+                deprecated: false,
+                deprecation_reason: "",
+                description: "",
+                name: :author,
+                value: %Graphqexl.Schema.Ref{type: :User}
+              },
+              comments: %Graphqexl.Schema.Field{
+                deprecated: false,
+                deprecation_reason: "",
+                description: "",
+                name: :comments,
+                value: [%Graphqexl.Schema.Ref{type: :Comment}]
+              },
+              id: %Graphqexl.Schema.Field{
+                deprecated: false,
+                deprecation_reason: "",
+                description: "",
+                name: :id,
+                value: %Graphqexl.Schema.Ref{
+                  type: %Graphqexl.Schema.Required{type: :Id}
+                }
+              },
+              text: %Graphqexl.Schema.Field{
+                deprecated: false,
+                deprecation_reason: "",
+                description: "",
+                name: :text,
+                value: %Graphqexl.Schema.Ref{type: :String}
+              },
+              title: %Graphqexl.Schema.Field{
+                deprecated: false,
+                deprecation_reason: "",
+                description: "",
+                name: :title,
+                value: %Graphqexl.Schema.Ref{type: :String}
+              }
+            },
+            implements: %Graphqexl.Schema.Ref{type: :Timestamped},
+            name: :Post
+          },
+          Comment: %Graphqexl.Schema.Type{
+            deprecated: false,
+            deprecation_reason: "",
+            description: "",
+            implements: %Graphqexl.Schema.Ref{type: :Timestamped},
+            fields: %{
+              id: %Graphqexl.Schema.Field{
+                deprecated: false,
+                deprecation_reason: "",
+                description: "",
+                name: :id,
+                value: %Graphqexl.Schema.Ref{
+                  type: %Graphqexl.Schema.Required{type: :Id}
+                }
+              },
+              author: %Graphqexl.Schema.Field{
+                deprecated: false,
+                deprecation_reason: "",
+                description: "",
+                name: :author,
+                value: %Graphqexl.Schema.Ref{type: :User}
+              },
+              parent: %Graphqexl.Schema.Field{
+                deprecated: false,
+                deprecation_reason: "",
+                description: "",
+                name: :parent,
+                value: %Graphqexl.Schema.Ref{type: :Content}
+              },
+              text: %Graphqexl.Schema.Field{
+                deprecated: false,
+                deprecation_reason: "",
+                description: "",
+                name: :text,
+                value: %Graphqexl.Schema.Ref{type: :String}
+              }
+            },
+            name: :Comment
+          },
+          User: %Graphqexl.Schema.Type{
+            deprecated: false,
+            deprecation_reason: "",
+            description: "",
+            implements: %Graphqexl.Schema.Ref{type: :Timestamped},
+            fields: %{
+              id: %Graphqexl.Schema.Field{
+                deprecated: false,
+                deprecation_reason: "",
+                description: "",
+                name: :id,
+                value: %Graphqexl.Schema.Ref{
+                  type: %Graphqexl.Schema.Required{type: :Id}
+                }
+              },
+              email: %Graphqexl.Schema.Field{
+                deprecated: false,
+                deprecation_reason: "",
+                description: "",
+                name: :email,
+                value: %Graphqexl.Schema.Ref{type: :String}
+              },
+              firstName: %Graphqexl.Schema.Field{
+                deprecated: false,
+                deprecation_reason: "",
+                description: "",
+                name: :firstName,
+                value: %Graphqexl.Schema.Ref{type: :String}
+              },
+              lastName: %Graphqexl.Schema.Field{
+                deprecated: false,
+                deprecation_reason: "",
+                description: "",
+                name: :lastName,
+                value: %Graphqexl.Schema.Ref{type: :String}
+              },
+              role: %Graphqexl.Schema.Field{
+                deprecated: false,
+                deprecation_reason: "",
+                description: "",
+                name: :role,
+                value: %Graphqexl.Schema.Ref{type: :Role}
+              }
+            },
+            name: :User
+          },
+          Datetime: %Graphqexl.Schema.Type{
+            deprecated: false,
+            deprecation_reason: "",
+            description: "",
+            fields: %{},
+            implements: %Graphqexl.Schema.Ref{type: :String},
+            name: :Datetime
+          }
+        }
       }
+
     assert Graphqexl.Schema.gql(input) == expected
   end
 end

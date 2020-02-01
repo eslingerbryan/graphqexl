@@ -5,7 +5,20 @@ defmodule Graphqexl.Schema.Argument do
   GraphQL argument, belonging to e.g. a Query or Mutation
   """
 
-  defstruct name: "", type: %Ref{}
+  defstruct(
+    deprecated: false,
+    deprecation_reason: "",
+    description: "",
+    name: "",
+    type: %Ref{}
+  )
 
-  @type t :: %Graphqexl.Schema.Argument{name: String.t(), type: Ref.t()}
+  @type t ::
+    %Graphqexl.Schema.Argument{
+      deprecated: boolean,
+      deprecation_reason: String.t,
+      description: String.t,
+      name: String.t,
+      type: Ref.t
+    }
 end
