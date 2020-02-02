@@ -13,22 +13,23 @@ alias Graphqexl.Schema.{
 alias Treex.Traverse
 
 defmodule Graphqexl.Schema do
+  import Graphqexl.Tokens
+
   @moduledoc """
   Structured representation of a GraphQL schema, either built dynamically or
   parsed from a JSON document or GQL string.
   """
 
   defstruct(
-    context: %{},
-    enums: [],
-    interfaces: [],
-    mutations: [],
-    queries: [],
+    context: nil,
+    enums: %{},
+    interfaces: %{},
+    mutations: %{},
+    queries: %{},
     resolvers: %{},
-    str: "",
-    subscriptions: [],
-    types: [],
-    unions: []
+    subscriptions: %{},
+    types: %{},
+    unions: %{}
   )
 
   @type component ::
@@ -45,16 +46,15 @@ defmodule Graphqexl.Schema do
 
   @type t ::
           %Graphqexl.Schema{
-            context: ({Query.t, Map.t} -> Map.t),
-            enums: list(TEnum.t),
-            interfaces: list(Interface.t),
-            mutations: list(Mutation.t),
-            queries: list(Queries.t),
-            resolvers: Map.t,
-            str: gql,
-            subscriptions: list(Subscription.t),
-            types: list(Type.t),
-            unions: list(Union.t),
+            context: (Query.t, Map.t -> Map.t),
+            enums: %{atom => TEnum.t},
+            interfaces: %{atom => Interface.t},
+            mutations: %{atom => Mutation.t},
+            queries: %{atom => Query.t},
+            resolvers: %{atom => (Map.t, Map.t, Map.t -> Map.t)},
+            subscriptions: %{atom => Subscription.t},
+            types: %{atom => Type.t},
+            unions: %{atom => Union.t} ,
           }
 
   @doc """
@@ -76,14 +76,11 @@ defmodule Graphqexl.Schema do
   Returns `t:Graphqexl.Schema.t/0`
   """
   @doc since: "0.1.0"
-  def gql(str) when is_binary(str) do
-    executable_schema = str |> Dsl.preprocess
-
-    executable_schema
-    |> String.split("\n")
-    |> Enum.each(&(&1 |> IO.puts))
-
-    %Graphqexl.Schema{str: executable_schema}
+  def gql(gql_str) when is_binary(gql_str) do
+    gql_str
+    |> Dsl.preprocess
+    |> split_lines
+    |> Enum.reduce(%Graphqexl.Schema{}, &apply_line/2)
   end
 
   @doc """
@@ -120,7 +117,7 @@ defmodule Graphqexl.Schema do
   end
 
   def register(schema, %Interface{} = component) do
-    schema |> register(:interfacess, component)
+    schema |> register(:interfaces, component)
   end
 
   def register(schema, %Mutation{} = component) do
@@ -144,12 +141,100 @@ defmodule Graphqexl.Schema do
   end
 
   @doc false
-  defp register(schema, key, value) do
-    schema |> Map.update(key, value, &prepend_list/2)
+  defp register(schema, key, component) do
+    schema |> Map.update(key, %{}, &(&1 |> add_component(component)))
   end
 
   @doc false
-  defp prepend_list(list, value) do
-    list |> List.insert_at(0, value)
+  defp add_component(map, component) do
+    map |> Map.update(component.name, component, &Function.identity/1)
+  end
+
+  @doc false
+  defp apply_line([cmd | args], schema) do
+    [str_name | fields_or_values] = args
+    name = str_name |> String.to_atom
+    case cmd |> String.replace(tokens.argument_placeholder_separator, "") |> String.to_atom do
+      :enum -> schema |> Dsl.enum(name, fields_or_values)
+      :interface -> schema |> Dsl.interface(name, fields_or_values)
+      :mutation -> schema |> Dsl.mutation(name, fields_or_values)
+      :query -> schema |> Dsl.query(name, fields_or_values)
+      :schema -> schema
+      :subscription -> schema |> Dsl.subscription(name, fields_or_values)
+      :type ->
+        cond do
+          name == :Query ->
+            fields_or_values
+            |> List.first
+            |> String.split(tokens.argument_placeholder_separator)
+            |> Enum.reduce(schema, &(Dsl.query(&2, &1)))
+          name == :Mutation ->
+            fields_or_values |> Enum.reduce(schema, &(Dsl.mutation(&2, &1)))
+          name == :Subscription ->
+            fields_or_values |> Enum.reduce(schema, &(Dsl.subscription(&2, &1)))
+          fields_or_values |> is_argument? -> schema |> Dsl.type(name, nil, fields_or_values)
+          fields_or_values |> is_custom_scalar? ->
+            schema
+            |> Dsl.type(
+                 name,
+                 fields_or_values
+                 |> List.first
+                 |> String.replace(tokens.custom_scalar_placeholder, "")
+               )
+          true ->
+            {implements, fields} = fields_or_values |> List.pop_at(0)
+            schema |> Dsl.type(name, implements, fields)
+        end
+      :union ->
+        [_, type1, type2] = args
+        schema |> Dsl.union(name, type1, type2)
+      _ -> raise "Unknown token: #{cmd}"
+    end
+  end
+
+  @doc false
+  defp is_custom_scalar?(spec) do
+    spec |> list_head_contains(tokens.custom_scalar_placeholder)
+  end
+
+  @doc false
+  defp is_argument?(spec) do
+    spec |> list_head_contains(tokens.argument_delimiter)
+  end
+
+  @doc false
+  defp list_head_contains(list, needle) do
+    list
+    |> List.first
+    |> String.contains?(needle)
+  end
+
+  @doc false
+  defp list_head_replace(list, needle, replacement) do
+    list
+    |> List.first
+    |> String.replace(needle, replacement)
+  end
+
+  @doc false
+  def regex_escape(char), do: "\\#{char}"
+
+  @doc false
+  defp semicolonize(value) do
+    value |> String.replace(" ", tokens.argument_placeholder_separator)
+  end
+
+  @doc false
+  defp split_lines(preprocessed) do
+    preprocessed
+    |> String.split("\n")
+    |> Enum.map(&(String.replace(&1, "#{tokens.argument_delimiter} ", tokens.argument_delimiter)))
+    |> Enum.map(fn spec ->
+      Regex.replace(
+        ~r/(#{regex_escape(tokens.argument.open)}.*#{regex_escape(tokens.argument.close)})/,
+        spec, &semicolonize/1
+      )
+    end)
+    |> Enum.map(&(&1 |> String.split(" ")))
   end
 end

@@ -5,9 +5,24 @@ defmodule Graphqexl.Schema.Union do
   GraphQL union
   """
 
-  defstruct name: "", type1: %Ref{}, type2: %Ref{}
+  defstruct(
+    deprecated: false,
+    deprecation_reason: "",
+    description: "",
+    name: "",
+    type1: %Ref{},
+    type2: %Ref{}
+  )
 
-  @type t :: %Graphqexl.Schema.Union{name: String.t(), type1: Ref.t(), type2: Ref.t()}
+  @type t ::
+    %Graphqexl.Schema.Union{
+      deprecated: boolean,
+      deprecation_reason: String.t,
+      description: String.t,
+      name: String.t,
+      type1: Ref.t,
+      type2: Ref.t
+     }
 
   @doc """
   Lists the fields available on the given `t:Graphqexl.Schema.Union.t/0`.

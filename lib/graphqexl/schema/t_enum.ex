@@ -3,9 +3,16 @@ defmodule Graphqexl.Schema.TEnum do
   GraphQL enum
   """
 
-  defstruct name: "", values: []
+  defstruct name: "", values: [], deprecated: false, deprecation_reason: "", description: ""
 
-  @type t :: %Graphqexl.Schema.TEnum{name: String.t, values: list(atom)}
+  @type t ::
+    %Graphqexl.Schema.TEnum{
+      deprecated: boolean,
+      deprecation_reason: String.t,
+      description: String.t,
+      name: String.t,
+      values: list(atom)
+    }
 
   @doc """
   Lists the values available on the given `t:Graphqexl.Schema.TEnum.t/0`.

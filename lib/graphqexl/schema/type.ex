@@ -1,7 +1,4 @@
-alias Graphqexl.Schema.{
-  Interface,
-  Ref
-}
+alias Graphqexl.Schema.Ref
 
 defmodule Graphqexl.Schema.Type do
   @moduledoc """
@@ -12,19 +9,19 @@ defmodule Graphqexl.Schema.Type do
     deprecated: false,
     deprecation_reason: "",
     description: "",
-    fields: [],
+    fields: %{},
     implements: nil,
     name: ""
   )
 
   @type t ::
     %Graphqexl.Schema.Type{
-      deprecated: boolean(),
-      deprecation_reason: String.t(),
-      description: String.t(),
-      fields: Map.t(),
-      implements: Interface.t() | nil,
-      name: String.t()
+      deprecated: boolean,
+      deprecation_reason: String.t,
+      description: String.t,
+      fields: Map.t,
+      implements: Ref.t | nil,
+      name: String.t
     }
 
   @doc """
