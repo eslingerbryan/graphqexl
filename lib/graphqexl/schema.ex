@@ -130,7 +130,12 @@ defmodule Graphqexl.Schema do
     preprocessed
     |> String.split("\n")
     |> Enum.map(&(String.replace(&1, "#{tokens.argument_delimiter} ", tokens.argument_delimiter)))
-    |> Enum.map(fn spec -> Regex.replace(~r/(#{regex_escape(tokens.argument.open)}.*#{regex_escape(tokens.argument.close)})/, spec, &semicolonize/1) end)
+    |> Enum.map(fn spec ->
+      Regex.replace(
+        ~r/(#{regex_escape(tokens.argument.open)}.*#{regex_escape(tokens.argument.close)})/,
+        spec, &semicolonize/1
+      )
+    end)
     |> Enum.map(&(&1 |> String.split(" ")))
   end
 
