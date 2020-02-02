@@ -136,9 +136,7 @@ defmodule Graphqexl.Query do
 
   @doc false
   @spec pre_preprocess(gql):: String.t
-  defp pre_preprocess(gql) do
-    gql |> String.trim
-  end
+  defp pre_preprocess(gql), do: gql |> String.trim
 
   @doc false
   @spec preprocess_variables(String.t):: String.t
