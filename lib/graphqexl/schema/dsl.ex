@@ -12,17 +12,14 @@ alias Graphqexl.Schema.{
   Type,
   Union,
 }
+alias Graphqexl.Tokens
 
 defmodule Graphqexl.Schema.Dsl do
+  import Graphqexl.Tokens
+
   @moduledoc """
   Domain-Specific Language for expressing and parsing a GQL string as a `t:Graphqexl.Schema.t/0`
   """
-
-  @patterns %{
-    name: "\[?[_A-Z][_A-Za-z]+!?\]?",
-    enum_value: "[_A-Z0-9]+",
-    field_name: "[_a-z][_A-Za-z]+",
-  }
 
   @doc """
   Prepares the graphql schema dsl string for parsing
@@ -230,17 +227,24 @@ defmodule Graphqexl.Schema.Dsl do
   @doc false
   defp transform(gql) do
     gql
-    |> regex_replace(~r/(type.*\s?)=\s?/, "\\g{1} ^")
-    |> regex_replace(~r/(union.*\s?)=\s?/, "\\g{1} ")
-    |> regex_replace(~r/(#{@patterns.field_name}):\s*?(#{@patterns.name})\n/, "\\g{1}:\\g{2}")
-    |> regex_replace(~r/\simplements\s(#{@patterns.name})\s/, " \\g{1}")
-    |> regex_replace(~r/(enum|interface|schema|type|union)/, "@\\g{1}")
+    |> regex_replace(~r/(#{keywords.type}.*\s?)#{tokens.assignment}\s?/, "\\g{1} #{tokens.custom_scalar_placeholder}")
+    |> regex_replace(~r/(#{keywords.union}.*\s?)#{tokens.assignment}\s?/, "\\g{1} ")
+    |> regex_replace(~r/(#{tokens.patterns.field_name})#{tokens.argument_delimiter}\s*?(#{tokens.patterns.name})\n/, "\\g{1}:\\g{2}")
+    |> regex_replace(~r/\s#{keywords.implements}\s(#{tokens.patterns.name})\s/, " \\g{1}")
+    |> regex_replace(~r/(#{tokens.operations |> regex_unionize})/, "#{tokens.operation_delimiter}\\g{1}")
+  end
+
+  @doc false
+  defp regex_unionize(patterns) do
+    patterns
+    |> Map.values
+    |> Enum.join("|")
   end
 
   @doc false
   defp parse_fields(fields) do
     fields
-    |> Enum.map(&(String.split(&1, ":")))
+    |> Enum.map(&(String.split(&1, tokens.argument_delimiter)))
     |> Enum.map(&(
       {
         &1 |> List.first |> String.to_atom,
@@ -279,7 +283,7 @@ defmodule Graphqexl.Schema.Dsl do
 
   @doc false
   defp is_required?(value) do
-    value |> String.contains?("!")
+    value |> String.contains?(tokens.required)
   end
 
   @doc false
@@ -292,19 +296,19 @@ defmodule Graphqexl.Schema.Dsl do
 
   @doc false
   defp is_list?(value) do
-    value |> String.contains?("[")
+    value |> String.contains?(tokens.list.open)
   end
 
   @doc false
   defp required_field_value(component = %Ref{}) do
     %Ref{
-      type: %Required{type: "!" |> atomize_field_value(component.type)}
+      type: %Required{type: tokens.required |> atomize_field_value(component.type)}
     }
   end
 
   @doc false
   defp list_field_value(component = %Ref{}) do
-    [%Ref{type: ["[", "]"] |> atomize_field_value(component.type)}]
+    [%Ref{type: [tokens.list.open, tokens.list.close] |> atomize_field_value(component.type)}]
   end
 
   @doc false
@@ -324,8 +328,8 @@ defmodule Graphqexl.Schema.Dsl do
   @doc false
   defp parse_query_args(args) do
     args
-    |> String.split(";")
-    |> Enum.map(&(String.split(&1, ":")))
+    |> String.split(tokens.argument_placeholder_separator)
+    |> Enum.map(&(String.split(&1, tokens.argument_delimiter)))
     |> Enum.map(&(
       {
         &1 |> List.first |> String.to_atom,

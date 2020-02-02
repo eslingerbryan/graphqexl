@@ -13,6 +13,7 @@ alias Graphqexl.Schema.{
 alias Treex.Traverse
 
 defmodule Graphqexl.Schema do
+  import Graphqexl.Tokens
 
   @moduledoc """
   Structured representation of a GraphQL schema, either built dynamically or
@@ -86,7 +87,7 @@ defmodule Graphqexl.Schema do
   defp apply_line([cmd | args], schema) do
     [str_name | fields_or_values] = args
     name = str_name |> String.to_atom
-    case cmd |> String.replace(";", "") |> String.to_atom do
+    case cmd |> String.replace(tokens.argument_placeholder_separator, "") |> String.to_atom do
       :enum -> schema |> Dsl.enum(name, fields_or_values)
       :interface -> schema |> Dsl.interface(name, fields_or_values)
       :mutation -> schema |> Dsl.mutation(name, fields_or_values)
@@ -98,7 +99,7 @@ defmodule Graphqexl.Schema do
           name == :Query ->
             fields_or_values
             |> List.first
-            |> String.split(";")
+            |> String.split(tokens.argument_placeholder_separator)
             |> Enum.reduce(schema, &(Dsl.query(&2, &1)))
           name == :Mutation ->
             fields_or_values |> Enum.reduce(schema, &(Dsl.mutation(&2, &1)))
@@ -111,7 +112,7 @@ defmodule Graphqexl.Schema do
                  name,
                  fields_or_values
                  |> List.first
-                 |> String.replace("^", "")
+                 |> String.replace(tokens.custom_scalar_placeholder, "")
                )
           true ->
             {implements, fields} = fields_or_values |> List.pop_at(0)
@@ -128,24 +129,27 @@ defmodule Graphqexl.Schema do
   defp split_lines(preprocessed) do
     preprocessed
     |> String.split("\n")
-    |> Enum.map(&(String.replace(&1, ": ", ":")))
-    |> Enum.map(fn spec -> Regex.replace(~r/(\(.*\))/, spec, &semicolonize/1) end)
+    |> Enum.map(&(String.replace(&1, "#{tokens.argument_delimiter} ", tokens.argument_delimiter)))
+    |> Enum.map(fn spec -> Regex.replace(~r/(#{regex_escape(tokens.argument.open)}.*#{regex_escape(tokens.argument.close)})/, spec, &semicolonize/1) end)
     |> Enum.map(&(&1 |> String.split(" ")))
   end
 
   @doc false
+  def regex_escape(char), do: "\\#{char}"
+
+  @doc false
   defp semicolonize(value) do
-    value |> String.replace(" ", ";")
+    value |> String.replace(" ", tokens.argument_placeholder_separator)
   end
 
   @doc false
   defp is_argument?(spec) do
-    spec |> list_head_contains(":")
+    spec |> list_head_contains(tokens.argument_delimiter)
   end
 
   @doc false
   defp is_custom_scalar?(spec) do
-    spec |> list_head_contains("^")
+    spec |> list_head_contains(tokens.custom_scalar_placeholder)
   end
 
   @doc false
