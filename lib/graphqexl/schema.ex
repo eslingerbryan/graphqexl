@@ -63,8 +63,13 @@ defmodule Graphqexl.Schema do
   """
   @doc since: "0.1.0"
   @spec executable(gql, Map.t, Map.t | nil):: t
-  def executable(gql_str, resolvers, context \\ nil),
-      do: %{gql_str |> gql | resolvers: resolvers, context: context }
+  def executable(gql_str, resolvers, context \\ nil) do
+    {:ok, schema} =
+      gql_str
+      |> gql
+      |> validate_resolvers!(resolvers)
+    %{schema | context: context, resolvers: resolvers}
+  end
 
   @doc """
   Parses a `t:Graphqexl.Schema.gql/0` string into a `t:Graphqexl.Schema.t/0`.
@@ -202,5 +207,27 @@ defmodule Graphqexl.Schema do
       )
     end)
     |> Enum.map(&(&1 |> String.split(:space |> Tokens.get)))
+  end
+
+  @doc false
+  defp validate_resolver!(schema, name) do
+    if [schema.mutations, schema.queries, schema.subscriptions]
+       |> Enum.any?(&(&1 |> Enum.member?(name))) do
+      {:ok, schema}
+    else
+      {:error, "No operation matching resolver #{name}"}
+    end
+  end
+
+  @doc false
+  defp validate_resolvers!(schema, resolvers) do
+    if resolvers
+       |> Map.keys
+       |> Enum.all?(&({:ok, _} = schema |> validate_resolver!(&1))) do
+      {:ok, schema}
+    else
+      # TODO: tighten up this error handling
+      {:error, "Invalid resolvers"}
+    end
   end
 end
