@@ -147,7 +147,7 @@ defmodule Graphqexl.Schema do
 
   @doc false
   defp add_component(map, component) do
-    map |> Map.update(component.name, component, &Function.identity/1)
+    map |> Map.update(component.name, component, &(&1))
   end
 
   @doc false
@@ -227,7 +227,7 @@ defmodule Graphqexl.Schema do
   @doc false
   defp split_lines(preprocessed) do
     preprocessed
-    |> String.split("\n")
+    |> String.split(tokens.newline)
     |> Enum.map(&(String.replace(&1, "#{tokens.argument_delimiter} ", tokens.argument_delimiter)))
     |> Enum.map(fn spec ->
       Regex.replace(
@@ -235,6 +235,6 @@ defmodule Graphqexl.Schema do
         spec, &semicolonize/1
       )
     end)
-    |> Enum.map(&(&1 |> String.split(" ")))
+    |> Enum.map(&(&1 |> String.split(tokens.space)))
   end
 end

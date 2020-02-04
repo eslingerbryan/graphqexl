@@ -29,3 +29,4 @@ node_modules/
 dist/
 
 *.gql
+!lib/graphqexl/utils/schema.gql

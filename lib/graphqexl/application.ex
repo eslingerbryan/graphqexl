@@ -11,7 +11,9 @@ defmodule Graphqexl.Application do
   def start(_type, _args) do
     Logger.info("Starting server at http://localhost:4000")
     children = [
-      Plug.Cowboy.child_spec(scheme: :http, plug: Router, options: [port: 4000])
+      # TODO: pull schema.gql from configured env
+      Graphqexl.Schema.Executable,
+      Plug.Cowboy.child_spec(scheme: :http, plug: Router, options: [port: 4000]),
     ]
 
     # See https://hexdocs.pm/elixir/Supervisor.html

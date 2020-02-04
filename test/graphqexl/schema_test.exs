@@ -1,13 +1,3 @@
-alias Graphqexl.Schema.{
-  Field,
-  Interface,
-  Ref,
-  Required,
-  TEnum,
-  Type,
-  Union,
-}
-
 defmodule Graphqexl.Schema.SchemaTest do
   use ExUnit.Case
 
