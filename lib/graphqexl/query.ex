@@ -153,6 +153,7 @@ defmodule Graphqexl.Query do
   defp resolve!(query, schema, context \\ %{}) do
     query.operations
     |> Enum.reduce(%ResultSet{}, &(query |> insert(&2, &1, schema, context)))
+    |> ResultSet.validate!(schema)
   end
 
   @doc false
