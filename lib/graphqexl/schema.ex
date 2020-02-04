@@ -212,7 +212,7 @@ defmodule Graphqexl.Schema do
   @doc false
   defp validate_resolver!(schema, name) do
     if [schema.mutations, schema.queries, schema.subscriptions]
-       |> Enum.any?(&(&1 |> Enum.member?(name))) do
+       |> Enum.any?(&(&1 |> Map.keys |> Enum.member?(name))) do
       {:ok, schema}
     else
       {:error, "No operation matching resolver #{name}"}

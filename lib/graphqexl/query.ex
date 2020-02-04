@@ -149,19 +149,37 @@ defmodule Graphqexl.Query do
   end
 
   @doc false
-  @spec resolve!(t, Schema.t):: ResultSet.t
-  defp resolve!(_query, _schema) do
-    data = %{}
-#      query.operations
-#      |> Enum.reduce(%{}, fn (operation) ->
-#        schema.resolvers |> Map.get(operation.name).(
-#          %{},
-#          query.arguments,
-#          schema.context.(query, %{})
-#        )
-#      end)
-    # TODO: intersect result with query.fields
-    %ResultSet{data: data, errors: %{}}
+  @spec resolve!(t, Schema.t, Map.t):: ResultSet.t
+  defp resolve!(query, schema, context \\ %{}) do
+    query.operations
+    |> Enum.reduce(%ResultSet{}, &(query |> insert(&2, &1, schema, context)))
+  end
+
+  @doc false
+  defp insert(query, result_set, operation, schema, context) do
+    # TODO: pattern match on the whole {:ok, data} / {:error, errors} idea
+    data_or_errors =
+      query
+      |> invoke!(
+           schema.resolvers |> Map.get(operation.name),
+           context
+         )
+    %{
+      result_set |
+      data: result_set.data |> Map.update(operation.user_defined_name, data_or_errors, &(&1))
+    }
+  end
+
+  @doc false
+  defp invoke!(query, resolver, context) do
+    query.operations
+    |> Enum.reduce(%{}, fn (operation, acc) ->
+      # TODO: probably want to do the error handling here, and return a {:ok, data} or {:error, errors} type of structure
+      # TODO: parent context (i.e. where in the current query tree is this coming from)
+      res = resolver |> apply([%{}, operation.arguments, context])
+      # TODO: recursively filter to selected fields
+      acc |> Map.update(operation.user_defined_name, res, &(&1))
+    end)
   end
 
   @doc false
@@ -286,5 +304,6 @@ defmodule Graphqexl.Query do
   @spec validate!(t, Schema.t):: boolean
   defp validate!(query, schema) do
     true = query.operations |> Enum.all?(&(Validator.valid?(&1, schema)))
+    query
   end
 end
