@@ -66,17 +66,49 @@ defmodule Graphqexl.Query do
   def parse(_json) # TODO: convert bare map to %Query{}
 
   @doc false
+  defp hydrate_arguments(arguments, variables) do
+    arguments
+    |> Enum.reduce(%{}, fn ({key, value}, hydrated_args) ->
+      val = if is_atom(value) do
+        variables |> Map.get(value)
+      else
+        value
+      end
+      hydrated_args |> Map.update(key, val, &(&1))
+    end)
+  end
+
+  @doc false
+  defp insert(query, result_set, operation, schema, context) do
+    # TODO: pattern match on the whole {:ok, data} / {:error, errors} idea
+    data_or_errors =
+      operation
+      |> invoke!(
+           schema.resolvers |> Map.get(operation.name),
+           context
+         )
+    %{
+      result_set |
+      data: result_set.data |> Map.update(operation.user_defined_name, data_or_errors, &(&1))
+    }
+  end
+
+  @doc false
+  defp invoke!(operation, resolver, context) do
+    # TODO: probably want to do the error handling here, and return a {:ok, data} or {:error, errors} type of structure
+    # TODO: parent context (i.e. where in the current query tree is this coming from)
+    # TODO: recursively filter to selected fields
+    resolver |> apply([%{}, operation.arguments |> hydrate_arguments(operation.variables), context])
+  end
+
+  @doc false
   @spec new_operation(String.t):: Operation.t
   defp new_operation(line) do
     %{"type" => type, "name" => name, "arguments" => arguments} =
       %{"type" => "query"} |> Map.merge(:query_operation |> Tokens.patterns |> Regex.named_captures(line))
 
     {args, vars} =
-      if ~r/\$#{:field_name |> Tokens.identifiers}:\s?(\"[\w|_]+\"|\d+|true|false|null)/ |> Regex.match?(line) do
-        {nil, arguments}
-      else
-        {arguments, nil}
-      end
+      if arguments |> String.at(1) == :variable |> Tokens.variable do {nil, arguments} else {arguments, nil} end
 
     %Operation{
       type: type |> String.to_atom,
@@ -154,33 +186,6 @@ defmodule Graphqexl.Query do
     query.operations
     |> Enum.reduce(%ResultSet{}, &(query |> insert(&2, &1, schema, context)))
     |> ResultSet.validate!(schema)
-  end
-
-  @doc false
-  defp insert(query, result_set, operation, schema, context) do
-    # TODO: pattern match on the whole {:ok, data} / {:error, errors} idea
-    data_or_errors =
-      query
-      |> invoke!(
-           schema.resolvers |> Map.get(operation.name),
-           context
-         )
-    %{
-      result_set |
-      data: result_set.data |> Map.update(operation.user_defined_name, data_or_errors, &(&1))
-    }
-  end
-
-  @doc false
-  defp invoke!(query, resolver, context) do
-    query.operations
-    |> Enum.reduce(%{}, fn (operation, acc) ->
-      # TODO: probably want to do the error handling here, and return a {:ok, data} or {:error, errors} type of structure
-      # TODO: parent context (i.e. where in the current query tree is this coming from)
-      res = resolver |> apply([%{}, operation.arguments, context])
-      # TODO: recursively filter to selected fields
-      acc |> Map.update(operation.user_defined_name, res, &(&1))
-    end)
   end
 
   @doc false
