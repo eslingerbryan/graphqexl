@@ -27,3 +27,5 @@ yarn-error.log
 node_modules/
 .cache/
 dist/
+
+*.gql
