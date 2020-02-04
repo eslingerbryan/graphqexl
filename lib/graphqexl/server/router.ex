@@ -34,10 +34,8 @@ defmodule Graphqexl.Server.Router do
   match _ do
     Logger.debug("Starting request: #{conn |> request_log_str}")
     Logger.info("Finished request: #{conn |> request_log_str}")
-    send_resp(conn, 404, "oops")
+    send_resp(conn, 404, "Not Found")
   end
 
-  defp request_log_str(conn) do
-    "[#{conn.method |> String.upcase}] #{conn.request_path}"
-  end
+  defp request_log_str(conn), do: "[#{conn.method |> String.upcase}] #{conn.request_path}"
 end
