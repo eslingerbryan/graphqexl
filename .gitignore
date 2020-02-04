@@ -27,3 +27,6 @@ yarn-error.log
 node_modules/
 .cache/
 dist/
+
+*.gql
+!lib/graphqexl/utils/schema.gql

@@ -1,0 +1,51 @@
+interface Timestamped {
+  createdAt: Datetime
+  updatedAt: Datetime
+}
+
+type Datetime = String
+
+type User implements Timestamped {
+  id: Id!
+  firstName: String
+  lastName: String
+  email: String
+  role: Role
+}
+
+type Comment implements Timestamped {
+  id: Id!
+  author: User
+  parent: Content
+  text: String
+}
+
+type Post implements Timestamped {
+  id: Id!
+  text: String
+  title: String
+  author: User
+  comments: [Comment]
+}
+
+union Content = Comment | Post
+
+enum Role {
+  AUTHOR,
+  EDITOR,
+  ADMIN,
+}
+
+type Query {
+  getPost(id: Id!): Post
+  getUserComments(userId: Id!): [Comment]
+}
+
+type Mutation {
+  createPost(title: String, text: String!, authorId: Id!): Post
+}
+
+schema {
+  query: Query
+  mutation: Mutation
+}

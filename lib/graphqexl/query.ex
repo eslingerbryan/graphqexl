@@ -242,7 +242,7 @@ defmodule Graphqexl.Query do
            value
            |> postprocess_variables
            |> String.to_atom,
-           &Function.identity/1
+           &(&1)
          )
     end)
   end
@@ -263,7 +263,7 @@ defmodule Graphqexl.Query do
            value
            |> postprocess_variables
            |>  parse_value,
-           &Function.identity/1
+           &(&1)
          )
     end)
   end
