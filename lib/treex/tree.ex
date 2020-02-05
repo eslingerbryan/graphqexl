@@ -16,7 +16,7 @@ defmodule Treex.Tree do
   def from_map(map, root \\ :root)
   def from_map(map = %{}, root) when map |> map_size == 0,
       do: %Treex.Tree{value: root, children: []}
-  def from_map(map = %{}, root) when map |> map_size == 1,
+  def from_map(map = %{}, _root) when map |> map_size == 1,
       do: map |> Enum.reduce(%Treex.Tree{}, &node_from_element/2)
   def from_map(map = %{}, root), do: %{root => map} |> from_map(root)
 

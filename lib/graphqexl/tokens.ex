@@ -57,12 +57,11 @@ defmodule Graphqexl.Tokens do
     union_type_delimiter: "|",
     variable: "$",
   }
-  def tokens, do: @tokens
+  def get, do: @tokens
 
   @argument_pattern """
   (#{@identifiers.field_name})#{@tokens.argument_delimiter}\s*?(#{@identifiers.type_value})
   """
-  @query_argument_pattern "?<arguments>\(?\(\$?.*\)"
   @name_pattern "?<name>#{@identifiers.field_name}"
   @type_pattern "?<type>(query|mutation|subscription)"
   @patterns %{

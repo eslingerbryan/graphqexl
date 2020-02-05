@@ -4,10 +4,10 @@ alias Graphqexl.Query.{
   Validator,
 }
 alias Graphqexl.Schema
+alias Graphqexl.Tokens
 alias Treex.Tree
 
 defmodule Graphqexl.Query do
-  import Graphqexl.Tokens
 
   @moduledoc """
   GraphQL query, comprised of one or more `t:Graphqexl.Query.Operation.t/0`s.
@@ -66,10 +66,10 @@ defmodule Graphqexl.Query do
   @doc false
   defp new_operation(line) do
     %{"type" => type, "name" => name, "arguments" => arguments} =
-      %{"type" => "query"} |> Map.merge(patterns.query_operation |> Regex.named_captures(line))
+      %{"type" => "query"} |> Map.merge(Tokens.patterns.query_operation |> Regex.named_captures(line))
 
     {args, vars} =
-      if ~r/\$#{identifiers.field_name}:\s?(\"[\w|_]+\"|\d+|true|false|null)/ |> Regex.match?(line) do
+      if ~r/\$#{Tokens.identifiers.field_name}:\s?(\"[\w|_]+\"|\d+|true|false|null)/ |> Regex.match?(line) do
         {nil, arguments}
       else
         {arguments, nil}
@@ -92,8 +92,8 @@ defmodule Graphqexl.Query do
     numeric? = Regex.match?(~r/"(\d+(\.\d+)?)"/, value)
     string? = Regex.match?(~r/\"(.*)\"/, value)
     cond do
-      numeric? -> value |> String.replace(tokens.quote, "")
-      string? -> value |> String.replace(tokens.quote, "")
+      numeric? -> value |> String.replace(Tokens.get.quote, "")
+      string? -> value |> String.replace(Tokens.get.quote, "")
       true -> raise "Invalid type: expected a string, number, boolean or null, got #{value}"
     end
   end
@@ -101,9 +101,9 @@ defmodule Graphqexl.Query do
   @doc false
   defp postprocess_variables(variables) do
     variables
-    |> String.replace(tokens.argument.close, "")
-    |> String.replace(tokens.argument.open, "")
-    |> String.replace(tokens.variable, "")
+    |> String.replace(Tokens.get.argument.close, "")
+    |> String.replace(Tokens.get.argument.open, "")
+    |> String.replace(Tokens.get.variable, "")
     |> preprocess_line
   end
 
@@ -111,19 +111,19 @@ defmodule Graphqexl.Query do
   defp preprocess(gql) do
     gql
     |> pre_preprocess
-    |> String.split(tokens.newline)
+    |> String.split(Tokens.get.newline)
     |> Enum.map(&String.trim/1)
     # This only works _after_ the map/trim above (otherwise the # may not be the first char)
-    |> Enum.filter(&(!String.starts_with?(&1, tokens.comment_char)))
-    |> Enum.map(&(String.replace(&1, "#{tokens.newline}#{tokens.fields.open}", tokens.fields.open)))
+    |> Enum.filter(&(!String.starts_with?(&1, Tokens.get.comment_char)))
+    |> Enum.map(&(String.replace(&1, "#{Tokens.get.newline}#{Tokens.get.fields.open}", Tokens.get.fields.open)))
   end
 
   @doc false
   defp preprocess_line(line) do
     line
-    |> String.replace(tokens.ignored_delimiter, "")
-    |> String.replace(tokens.fields.close, "")
-    |> String.replace(tokens.fields.open, "")
+    |> String.replace(Tokens.get.ignored_delimiter, "")
+    |> String.replace(Tokens.get.fields.close, "")
+    |> String.replace(Tokens.get.fields.open, "")
     |> String.trim
   end
 
@@ -135,11 +135,11 @@ defmodule Graphqexl.Query do
   @doc false
   defp preprocess_variables(variables) do
     variables
-    |> String.replace("#{tokens.argument_delimiter}#{tokens.space}", tokens.argument_delimiter)
+    |> String.replace("#{Tokens.get.argument_delimiter}#{Tokens.get.space}", Tokens.get.argument_delimiter)
   end
 
   @doc false
-  defp resolve!(query, schema) do
+  defp resolve!(_query, _schema) do
     data = %{}
 #      query.operations
 #      |> Enum.reduce(%{}, fn (operation) ->
@@ -167,17 +167,17 @@ defmodule Graphqexl.Query do
   defp tokenize(line, %{stack: stack, current: current, operations: operations}) do
     last_char = line |> String.at(-1)
     cond do
-      last_char == tokens.fields.open ->
+      last_char == Tokens.get.fields.open ->
         case stack |> Enum.count do
           0 ->
             if is_nil(current) do
               %{stack: stack, current: line |> new_operation, operations: operations}
             else
-              if line |> String.contains?(tokens.argument_delimiter) do
+              if line |> String.contains?(Tokens.get.argument_delimiter) do
                 %{"name" => name, "arguments" => arguments} =
                   %{"type" => "query"}
                   |> Map.merge(
-                       patterns.query_operation
+                       Tokens.patterns.query_operation
                        |> Regex.named_captures(line)
                      )
                 new_current = %{
@@ -201,7 +201,7 @@ defmodule Graphqexl.Query do
             %{stack: new_stack, current: current, operations: operations}
         end
 
-      last_char == tokens.fields.close ->
+      last_char == Tokens.get.fields.close ->
         case stack |> Enum.count do
           0 ->
             %{stack: [], current: nil, operations: operations}
@@ -232,9 +232,9 @@ defmodule Graphqexl.Query do
   defp tokenize_arguments(arguments) do
     arguments
     |> preprocess_variables
-    |> String.split(tokens.space)
+    |> String.split(Tokens.get.space)
     |> Enum.reduce(%{}, fn (arg, vars) ->
-      [name, value] = arg |> String.split(tokens.argument_delimiter)
+      [name, value] = arg |> String.split(Tokens.get.argument_delimiter)
       vars
       |> Map.update(
            name
@@ -253,9 +253,9 @@ defmodule Graphqexl.Query do
   defp tokenize_variables(variables) do
     variables
     |> preprocess_variables
-    |> String.split(tokens.space)
+    |> String.split(Tokens.get.space)
     |> Enum.reduce(%{}, fn (arg, vars) ->
-      [name, value] = arg |> String.split(tokens.argument_delimiter)
+      [name, value] = arg |> String.split(Tokens.get.argument_delimiter)
       vars
       |> Map.update(
            name
