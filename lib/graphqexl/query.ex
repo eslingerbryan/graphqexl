@@ -4,6 +4,7 @@ alias Graphqexl.Query.{
   Validator,
 }
 alias Graphqexl.Schema
+alias Treex.Tree
 
 defmodule Graphqexl.Query do
   import Graphqexl.Tokens
@@ -207,7 +208,7 @@ defmodule Graphqexl.Query do
           1 ->
             new_operations =
               operations
-              |> stack_push(%{current | fields: stack |> stack_pop |> elem(0) |> Enum.into(%{})})
+              |> stack_push(%{current | fields: stack |> stack_pop |> elem(0) |> Enum.into(%{}) |> Tree.from_map})
             %{stack: [], current: current, operations: new_operations}
           _ ->
             {top, rest} = stack |> stack_pop

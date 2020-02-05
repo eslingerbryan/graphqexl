@@ -15,9 +15,11 @@ defmodule Graphqexl.Query.Validator do
   @doc since: "0.1.0"
   @spec valid?(Query.t, Schema.t):: boolean
   def valid?(query, schema) do
-    query |> scalar_leaves?(schema) &&
-      query |> valid_types_and_fields?(schema) &&
-      query |> has_all_required_arguments?(schema)
+    # TODO: implement
+    true
+#    query |> scalar_leaves?(schema) &&
+#      query |> valid_types_and_fields?(schema) &&
+#      query |> has_all_required_arguments?(schema)
   end
 
   @doc false
