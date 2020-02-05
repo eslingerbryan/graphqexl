@@ -41,6 +41,7 @@ defmodule Graphqexl.Query.Validator do
 
   @doc false
   defp leaves(_tree) do
+    # TODO: implement on the Tree module
     []
   end
 
@@ -53,8 +54,10 @@ defmodule Graphqexl.Query.Validator do
   end
 
   @doc false
-  defp valid_types_and_fields?(query, schema) do
-    query.fields
-    |> Enum.all?(&(Schema.has_field?(schema, &1)))
+  defp valid_types_and_fields?(_query, _schema) do
+    true
+    # TODO: implement as a tree traversal
+#    query.fields
+#    |> Enum.all?(&(Schema.has_field?(schema, &1)))
   end
 end

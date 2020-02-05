@@ -1,7 +1,98 @@
-alias Graphqexl.Query.Operation
+alias Graphqexl.Query
+alias Graphqexl.Query.{
+  Operation,
+  ResultSet,
+}
+alias Graphqexl.Schema
 
-defmodule Graphqexl.Schema.QueryTest do
+defmodule Graphqexl.QueryTest do
   use ExUnit.Case
+
+  @query """
+    # comments don't count
+    query getSinglePost($postId: "foo") {
+     getPost(id: $postId) {
+       title
+       text
+       author {
+         # comment can be anywhere
+         firstName
+         lastName
+       }
+       comments {
+         author {
+           firstName
+           lastName
+         }
+         text
+       }
+     }
+    }
+  """
+
+  @expected_query %Query{
+    operations: [
+      %Operation{
+        name: :getPost,
+        arguments: %{
+          id: :postId
+        },
+        fields: %Treex.Tree{
+          value: :root,
+          children: [
+            %Treex.Tree{
+              children: [
+                %Treex.Tree{
+                  children: [],
+                  value: :firstName,
+                },
+                %Treex.Tree{
+                  children: [],
+                  value: :lastName,
+                }
+              ],
+              value: :author,
+            },
+            %Treex.Tree{
+              children: [
+                %Treex.Tree{
+                  children: [
+                    %Treex.Tree{
+                      children: [],
+                      value: :firstName,
+                    },
+                    %Treex.Tree{
+                      children: [],
+                      value: :lastName,
+                    },
+                  ],
+                  value: :author,
+                },
+                %Treex.Tree{
+                  children: [],
+                  value: :text,
+                }
+              ],
+              value: :comments,
+            },
+            %Treex.Tree{
+              children: [],
+              value: :text,
+            },
+            %Treex.Tree{
+              children: [],
+              value: :title,
+            },
+          ],
+        },
+        type: :query,
+        user_defined_name: :getSinglePost,
+        variables: %{
+          postId: "foo",
+        }
+      },
+    ]
+  }
 
   @schema """
     interface Timestamped {
@@ -55,63 +146,13 @@ defmodule Graphqexl.Schema.QueryTest do
       query: Query
       mutation: Mutation
     }
-  """
+  """ |> Schema.gql
+
+  test "execute" do
+    assert @expected_query |> Query.execute(@schema) == %ResultSet{}
+  end
 
   test "parse" do
-    input =
-      """
-      # comments don't count
-      query getSinglePost($postId: "foo") {
-        getPost(id: $postId) {
-          title
-          text
-          author {
-            # comment can be anywhere
-            firstName
-            lastName
-          }
-          comments {
-            author {
-              firstName
-              lastName
-            }
-            text
-          }
-        }
-      }
-      """
-
-    expected = %Graphqexl.Query{
-      operations: [
-        %Operation{
-          name: :getPost,
-          arguments: %{
-            id: :postId
-          },
-          fields: %{
-            title: %{},
-            text: %{},
-            author: %{
-              firstName: %{},
-              lastName: %{},
-            },
-            comments: %{
-              author: %{
-                firstName: %{},
-                lastName: %{},
-              },
-              text: %{},
-            }
-          },
-          type: :query,
-          user_defined_name: :getSinglePost,
-          variables: %{
-            postId: "foo",
-          }
-        },
-      ]
-    }
-
-    assert Graphqexl.Query.parse(input) == expected
+    assert @query |> Query.parse == @expected_query
   end
 end
