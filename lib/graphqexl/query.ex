@@ -108,7 +108,7 @@ defmodule Graphqexl.Query do
       %{"type" => "query"} |> Map.merge(:query_operation |> Tokens.patterns |> Regex.named_captures(line))
 
     {args, vars} =
-      if arguments |> String.at(1) == :variable |> Tokens.variable do {nil, arguments} else {arguments, nil} end
+      if arguments |> String.at(1) == :variable |> Tokens.get do {nil, arguments} else {arguments, nil} end
 
     %Operation{
       type: type |> String.to_atom,

@@ -4,6 +4,7 @@ alias Graphqexl.Query.{
   ResultSet,
 }
 alias Graphqexl.Schema
+alias Graphqexl.Utils.FakeData
 
 defmodule Graphqexl.QueryTest do
   use ExUnit.Case
@@ -94,6 +95,29 @@ defmodule Graphqexl.QueryTest do
     ]
   }
 
+  defmodule Resolvers do
+    """
+    Internal Use Only
+    """
+
+    @moduledoc false
+
+    @doc false
+    def create_post(_parent, _args, _context), do: FakeData.posts |> Enum.random
+
+    @doc false
+    def get_post(_parent, args, _context), do: args.id |> FakeData.post
+
+    @doc false
+    def get_user_comments(_parent, args, _context), do: args.userId |> FakeData.user_comments
+  end
+
+  @resolvers %{
+    createPost: &Graphqexl.QueryTest.Resolvers.create_post/3,
+    getPost: &Graphqexl.QueryTest.Resolvers.get_post/3,
+    getUserComments: &Graphqexl.QueryTest.Resolvers.get_user_comments/3,
+  }
+
   @schema """
     interface Timestamped {
       createdAt: Datetime
@@ -146,7 +170,7 @@ defmodule Graphqexl.QueryTest do
       query: Query
       mutation: Mutation
     }
-  """ |> Schema.gql
+  """ |> Schema.executable(@resolvers)
 
   test "execute" do
     assert @expected_query |> Query.execute(@schema) == %ResultSet{}
