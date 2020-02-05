@@ -89,9 +89,7 @@ defmodule Graphqexl.Schema do
   Returns `t:Graphqexl.Schema.t/0`
   """
   @doc since: "0.1.0"
-  def gql(_json) do
-    %Graphqexl.Schema{}
-  end
+  def gql(_json), do: %Graphqexl.Schema{}
 
   @doc """
   Check whether a field is defined on the given schema.
