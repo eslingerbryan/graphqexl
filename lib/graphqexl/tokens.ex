@@ -9,7 +9,14 @@ defmodule Graphqexl.Tokens do
     name: "[_A-Z][_A-Za-z]+",
     type_value: "\[?[_A-Z][_A-Za-z]+!?\]?",
   }
-  def identifiers, do: @identifiers
+  @doc """
+  Retrieve an identifier token by key
+
+  Returns: `t:String.t/0`
+  """
+  @doc since: "0.1.0"
+  @spec identifiers(atom):: String.t
+  def identifiers(key), do: @identifiers |> Map.get(key)
 
   @keywords %{
     enum: "enum",
@@ -22,7 +29,14 @@ defmodule Graphqexl.Tokens do
     type: "type",
     union: "union",
   }
-  def keywords, do: @keywords
+  @doc """
+  Retrieve a keyword token by key
+
+  Returns: `t:String.t/0`
+  """
+  @doc since: "0.1.0"
+  @spec keywords(atom):: String.t
+  def keywords(key), do: @keywords |> Map.get(key)
 
   @operation_keywords [:enum, :interface, :schema, :type, :union]
   @reserved_types [:mutation, :query, :subscription]
@@ -57,7 +71,14 @@ defmodule Graphqexl.Tokens do
     union_type_delimiter: "|",
     variable: "$",
   }
-  def get, do: @tokens
+  @doc """
+  Retrieve a token by key
+
+  Returns: `t:String.t/0` | Map.t
+  """
+  @doc since: "0.1.0"
+  @spec get(atom):: String.t | Map.t
+  def get(key), do: @tokens |> Map.get(key)
 
   @argument_pattern """
   (#{@identifiers.field_name})#{@tokens.argument_delimiter}\s*?(#{@identifiers.type_value})
@@ -78,5 +99,12 @@ defmodule Graphqexl.Tokens do
     union_type_separator: ~r/\s?#{@tokens.union_type_delimiter |> Regex.escape}\s?/,
     variable_value: ~r/\"[\w|_]+\"|\d+|true|false|null/
   }
-  def patterns, do: @patterns
+  @doc """
+  Retrieve a token pattern by key
+
+  Returns: `t:Regex.t/0`
+  """
+  @doc since: "0.1.0"
+  @spec patterns(atom):: Regex.t
+  def patterns(key), do: @patterns |> Map.get(key)
 end

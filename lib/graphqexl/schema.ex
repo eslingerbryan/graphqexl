@@ -11,7 +11,7 @@ alias Graphqexl.Schema.{
   Union,
 }
 alias Graphqexl.Tokens
-alias Treex.Traverse
+#alias Treex.Traverse
 
 defmodule Graphqexl.Schema do
 
@@ -152,7 +152,7 @@ defmodule Graphqexl.Schema do
   defp apply_line([cmd | args], schema) do
     [str_name | fields_or_values] = args
     name = str_name |> String.to_atom
-    case cmd |> String.replace(Tokens.get.argument_placeholder_separator, "") |> String.to_atom do
+    case cmd |> String.replace(:argument_placeholder_separator |> Tokens.get, "") |> String.to_atom do
       :enum -> schema |> Dsl.enum(name, fields_or_values)
       :interface -> schema |> Dsl.interface(name, fields_or_values)
       :mutation -> schema |> Dsl.mutation(args)
@@ -164,7 +164,7 @@ defmodule Graphqexl.Schema do
           name == :Query ->
             fields_or_values
             |> List.first
-            |> String.split(Tokens.get.argument_placeholder_separator)
+            |> String.split(:argument_placeholder_separator |> Tokens.get)
             |> Enum.reduce(schema, &(Dsl.query(&2, &1)))
           name == :Mutation ->
             fields_or_values |> Enum.reduce(schema, &(Dsl.mutation(&2, &1)))
@@ -177,7 +177,7 @@ defmodule Graphqexl.Schema do
                  name,
                  fields_or_values
                  |> List.first
-                 |> String.replace(Tokens.get.custom_scalar_placeholder, "")
+                 |> String.replace(:custom_scalar_placeholder |> Tokens.get, "")
                )
           true ->
             {implements, fields} = fields_or_values |> List.pop_at(0)
@@ -192,12 +192,12 @@ defmodule Graphqexl.Schema do
 
   @doc false
   defp is_custom_scalar?(spec) do
-    spec |> list_head_contains(Tokens.get.custom_scalar_placeholder)
+    spec |> list_head_contains(:custom_scalar_placeholder |> Tokens.get)
   end
 
   @doc false
   defp is_argument?(spec) do
-    spec |> list_head_contains(Tokens.get.argument_delimiter)
+    spec |> list_head_contains(:argument_delimiter |> Tokens.get)
   end
 
   @doc false
@@ -208,31 +208,24 @@ defmodule Graphqexl.Schema do
   end
 
   @doc false
-  defp list_head_replace(list, needle, replacement) do
-    list
-    |> List.first
-    |> String.replace(needle, replacement)
-  end
-
-  @doc false
   def regex_escape(char), do: "\\#{char}"
 
   @doc false
   defp semicolonize(value) do
-    value |> String.replace(" ", Tokens.get.argument_placeholder_separator)
+    value |> String.replace(" ", :argument_placeholder_separator |> Tokens.get)
   end
 
   @doc false
   defp split_lines(preprocessed) do
     preprocessed
-    |> String.split(Tokens.get.newline)
-    |> Enum.map(&(String.replace(&1, "#{Tokens.get.argument_delimiter} ", Tokens.get.argument_delimiter)))
+    |> String.split(:newline |> Tokens.get)
+    |> Enum.map(&(&1 |> String.replace("#{:argument_delimiter |> Tokens.get} ", :argument_delimiter |> Tokens.get)))
     |> Enum.map(fn spec ->
       Regex.replace(
-        ~r/(#{regex_escape(Tokens.get.argument.open)}.*#{regex_escape(Tokens.get.argument.close)})/,
+        ~r/(#{regex_escape(:argument |> Tokens.get |> Map.get(:open))}.*#{regex_escape(:argument |> Tokens.get |> Map.get(:close))})/,
         spec, &semicolonize/1
       )
     end)
-    |> Enum.map(&(&1 |> String.split(Tokens.get.space)))
+    |> Enum.map(&(&1 |> String.split(:space |> Tokens.get)))
   end
 end

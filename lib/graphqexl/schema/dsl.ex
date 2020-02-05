@@ -64,7 +64,7 @@ defmodule Graphqexl.Schema.Dsl do
   @spec mutation(Schema.t, String.t):: Schema.t
   def mutation(schema, spec) do
     %{"args" => args, "name" => name, "return" => return} =
-      Tokens.patterns.operation |> Regex.named_captures(spec)
+      :operation |> Tokens.patterns |> Regex.named_captures(spec)
     schema
     |> Schema.register(
          %Mutation{
@@ -103,7 +103,7 @@ defmodule Graphqexl.Schema.Dsl do
   @spec query(Schema.t, String.t):: Schema.t
   def query(schema, spec) do
     %{"args" => args, "name" => name, "return" => return} =
-      Tokens.patterns.operation |> Regex.named_captures(spec)
+      :operation |> Tokens.patterns |> Regex.named_captures(spec)
 
     schema
     |> Schema.register(
@@ -126,7 +126,7 @@ defmodule Graphqexl.Schema.Dsl do
   @spec subscription(Schema.t, String.t):: Schema.t
   def subscription(schema, spec) do
     %{"args" => args, "name" => name, "return" => return} =
-      Tokens.patterns.operation |> Regex.named_captures(spec)
+      :operation |> Tokens.patterns |> Regex.named_captures(spec)
     schema
     |> Schema.register(
          %Subscription{
@@ -215,19 +215,30 @@ defmodule Graphqexl.Schema.Dsl do
   @doc false
   defp compact(gql) do
     gql
-    |> String.replace(Tokens.get.fields.open, "")
-    |> String.replace(Tokens.get.fields.close, "")
-    |> String.replace(Tokens.get.ignored_whitespace, Tokens.get.space)
-    |> regex_replace(Tokens.patterns.significant_whitespace, Tokens.get.space)
-    |> String.replace(Tokens.get.operation_delimiter, Tokens.get.newline)
-    |> String.replace(Tokens.patterns.trailing_space, Tokens.get.newline)
-    |> String.replace("#{Tokens.get.argument_delimiter}#{Tokens.get.space}", Tokens.get.argument_delimiter)
+    |> String.replace(:fields |> Tokens.get |> Map.get(:open), "")
+    |> String.replace(:fields |> Tokens.get |> Map.get(:close), "")
+    |> String.replace(:ignored_whitespace |> Tokens.get, :space |> Tokens.get)
+    |> regex_replace(:significant_whitespace |> Tokens.patterns, :space |> Tokens.get)
+    |> String.replace(:operation_delimiter |> Tokens.get, :newline |> Tokens.get)
+    |> String.replace(:trailing_space |> Tokens.patterns, :newline |> Tokens.get)
+    |> String.replace("#{:argument_delimiter |> Tokens.get}#{:space |> Tokens.get}", :argument_delimiter |> Tokens.get)
     |> String.trim
   end
 
   @doc false
   defp list_field_value(component = %Ref{}) do
-    [%Ref{type: [Tokens.get.list.open, Tokens.get.list.close] |> atomize_field_value(component.type)}]
+    [
+      %Ref{
+        type: [
+                :list
+                |> Tokens.get
+                |> Map.get(:open),
+                :list
+                |> Tokens.get
+                |> Map.get(:close)
+              ]
+              |> atomize_field_value(component.type)
+      }]
   end
 
   @doc false
@@ -237,7 +248,7 @@ defmodule Graphqexl.Schema.Dsl do
   defp list?(value) when is_atom(value), do: list?(value |> Atom.to_string)
 
   @doc false
-  defp list?(value), do: value |> String.contains?(Tokens.get.list.open)
+  defp list?(value), do: value |> String.contains?(:list |> Tokens.get |> Map.get(:open))
 
   @doc false
   defp maybe_list(ref) do
@@ -257,7 +268,7 @@ defmodule Graphqexl.Schema.Dsl do
   @doc false
   defp parse_fields(fields) do
     fields
-    |> Enum.map(&(String.split(&1, Tokens.get.argument_delimiter)))
+    |> Enum.map(&(&1 |> String.split(:argument_delimiter |> Tokens.get)))
     |> Enum.map(&(
       {
         &1 |> List.first |> String.to_atom,
@@ -279,8 +290,8 @@ defmodule Graphqexl.Schema.Dsl do
   @doc false
   defp parse_query_args(args) do
     args
-    |> String.split(Tokens.get.argument_placeholder_separator)
-    |> Enum.map(&(String.split(&1, Tokens.get.argument_delimiter)))
+    |> String.split(:argument_placeholder_separator |> Tokens.get)
+    |> Enum.map(&(&1 |> String.split(:argument_delimiter |> Tokens.get)))
     |> Enum.map(&(
       {
         &1 |> List.first |> String.to_atom,
@@ -303,14 +314,14 @@ defmodule Graphqexl.Schema.Dsl do
   @doc false
   defp replace(gql) do
     gql
-    |> regex_replace(Tokens.patterns.union_type_separator, Tokens.get.space)
-    |> String.replace(Tokens.get.ignored_delimiter, "")
+    |> regex_replace(:union_type_separator |> Tokens.patterns, :space |> Tokens.get)
+    |> String.replace(:ignored_delimiter |> Tokens.get, "")
   end
 
   @doc false
   defp required_field_value(component = %Ref{}) do
     %Ref{
-      type: %Required{type: Tokens.get.required |> atomize_field_value(component.type)}
+      type: %Required{type: :required |> Tokens.get |> atomize_field_value(component.type)}
     }
   end
 
@@ -321,25 +332,25 @@ defmodule Graphqexl.Schema.Dsl do
   defp required?(value) when is_atom(value), do: value |> Atom.to_string |> required?
 
   @doc false
-  defp required?(value), do: value |> String.contains?(Tokens.get.required)
+  defp required?(value), do: value |> String.contains?(:required |> Tokens.get)
 
   @doc false
   defp regex_replace(string, pattern, replacement),
        do: pattern |> Regex.replace(string, replacement)
 
   @doc false
-  defp strip(gql), do: gql |> regex_replace(Tokens.patterns.comment, "")
+  defp strip(gql), do: gql |> regex_replace(:comment |> Tokens.patterns, "")
 
   @doc false
   defp transform(gql) do
     gql
-    |> regex_replace(Tokens.patterns.custom_scalar, "\\g{1} #{Tokens.get.custom_scalar_placeholder}")
-    |> regex_replace(Tokens.patterns.union, "\\g{1}#{Tokens.get.space}")
-    |> regex_replace(Tokens.patterns.argument, "\\g{1}#{Tokens.get.argument_delimiter}\\g{2}")
-    |> regex_replace(Tokens.patterns.implements, "#{Tokens.get.space}\\g{1}")
+    |> regex_replace(:custom_scalar |> Tokens.patterns, "\\g{1} #{:custom_scalar_placeholder |> Tokens.get}")
+    |> regex_replace(:union |> Tokens.patterns, "\\g{1}#{:space |> Tokens.get}")
+    |> regex_replace(:argument |> Tokens.patterns, "\\g{1}#{:argument_delimiter |> Tokens.get}\\g{2}")
+    |> regex_replace(:implements |> Tokens.patterns, "#{:space |> Tokens.get}\\g{1}")
     |> regex_replace(
-         ~r/(#{Tokens.get.operations |> regex_unionize})/,
-         "#{Tokens.get.operation_delimiter}\\g{1}"
+         ~r/(#{:operations |> Tokens.get |> regex_unionize})/,
+         "#{:operation_delimiter |> Tokens.get}\\g{1}"
        )
   end
 end
