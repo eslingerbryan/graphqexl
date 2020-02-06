@@ -66,6 +66,7 @@ defmodule Graphqexl.Query do
   def parse(_json) # TODO: convert bare map to %Query{}
 
   @doc false
+  @spec hydrate_arguments(Map.t, Map.t):: Map.t
   defp hydrate_arguments(arguments, variables) do
     arguments
     |> Enum.reduce(%{}, fn ({key, value}, hydrated_args) ->
@@ -79,6 +80,7 @@ defmodule Graphqexl.Query do
   end
 
   @doc false
+  @spec insert(ResultSet.t, Operation.t, Schema.t, Map.t):: ResultSet.t
   defp insert(result_set, operation, schema, context) do
     # TODO: pattern match on the whole {:ok, data} / {:error, errors} idea
     data_or_errors =
@@ -94,6 +96,7 @@ defmodule Graphqexl.Query do
   end
 
   @doc false
+  @spec insert(Operation.t, (_, _, _ -> term), Map.t):: Map.t | list(Map.t)
   defp invoke!(operation, resolver, context) do
     # TODO: probably want to do the error handling here, and return a {:ok, data} or {:error, errors} type of structure
     # TODO: parent context (i.e. where in the current query tree is this coming from)
