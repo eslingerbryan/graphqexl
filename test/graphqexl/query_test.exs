@@ -97,11 +97,8 @@ defmodule Graphqexl.QueryTest do
     ]
   }
 
+  # Internal Use Only
   defmodule Resolvers do
-    """
-    Internal Use Only
-    """
-
     @moduledoc false
 
     @doc false

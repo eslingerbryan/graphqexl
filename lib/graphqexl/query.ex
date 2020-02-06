@@ -79,7 +79,7 @@ defmodule Graphqexl.Query do
   end
 
   @doc false
-  defp insert(query, result_set, operation, schema, context) do
+  defp insert(result_set, operation, schema, context) do
     # TODO: pattern match on the whole {:ok, data} / {:error, errors} idea
     data_or_errors =
       operation
@@ -184,7 +184,7 @@ defmodule Graphqexl.Query do
   @spec resolve!(t, Schema.t, Map.t):: ResultSet.t
   defp resolve!(query, schema, context \\ %{}) do
     query.operations
-    |> Enum.reduce(%ResultSet{}, &(query |> insert(&2, &1, schema, context)))
+    |> Enum.reduce(%ResultSet{}, &(&2 |> insert(&1, schema, context)))
     |> ResultSet.validate!(schema)
   end
 
