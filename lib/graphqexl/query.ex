@@ -3,24 +3,27 @@ alias Graphqexl.Query.{
   ResultSet,
   Validator,
 }
-alias Graphqexl.Schema
-alias Graphqexl.Tokens
+alias Graphqexl.{
+  Schema,
+  Tokens,
+}
 alias Treex.Tree
 
 defmodule Graphqexl.Query do
-
   @moduledoc """
   GraphQL query, comprised of one or more `t:Graphqexl.Query.Operation.t/0`s.
 
   Built by calling `parse/1` with either a `t:Graphqexl.Query.gql/0` string
   (see `Graphqexl.Schema.Dsl`) or `t:Graphqexl.Query.json/0`.
   """
+  @moduledoc since: "0.1.0"
+  defstruct operations: []
 
   @type gql :: String.t
-  @type json :: Map.t
-  @type t :: %Graphqexl.Query{operations: [Operation.t]}
+  @type json :: %{String.t => term}
+  @type tokenizing_map:: %{stack: list, current: Operation.t, operations: list(Operation.t)}
 
-  defstruct operations: []
+  @type t :: %Graphqexl.Query{operations: list(Operation.t)}
 
   @doc """
   Execute the given `t:Graphqexl.Query.t/0`
@@ -36,12 +39,13 @@ defmodule Graphqexl.Query do
   end
 
   @doc """
-  Parse the given gql string (see `Graphqexl.Schema.Dsl`) into a `t:Graphqexl.Query.t/0`
+  Parse the given `t:Graphqexl.Schema.gql/0` string (see `Graphqexl.Schema.Dsl`) into a
+  `t:Graphqexl.Query.t/0`
 
   Returns: `t:Graphqexl.Query.t/0`
   """
   @doc since: "0.1.0"
-  @spec parse(gql) :: Query.t
+  @spec parse(gql):: Query.t
   def parse(gql) when is_binary(gql) do
     %Graphqexl.Query{
       operations:
@@ -53,17 +57,16 @@ defmodule Graphqexl.Query do
   end
 
   @doc """
-  Parse the given json map into a `t:Graphqexl.Query.t/0`
+  Parse the given `t:Graphqexl.Query.json/0` object into a `t:Graphqexl.Query.t/0`
 
   Returns: `t:Graphqexl.Query.t/0`
   """
   @doc since: "0.1.0"
-  @spec parse(json) :: Query.t
-  def parse(_json) do
-    # convert bare map to %Query{}
-  end
+  @spec parse(json):: Query.t
+  def parse(_json) # TODO: convert bare map to %Query{}
 
   @doc false
+  @spec new_operation(String.t):: Operation.t
   defp new_operation(line) do
     %{"type" => type, "name" => name, "arguments" => arguments} =
       %{"type" => "query"} |> Map.merge(:query_operation |> Tokens.patterns |> Regex.named_captures(line))
@@ -85,6 +88,7 @@ defmodule Graphqexl.Query do
   end
 
   @doc false
+  @spec parse_value(String.t):: boolean | integer | float | String.t
   defp parse_value("false"), do: false
   defp parse_value("true"), do: true
   defp parse_value("null"), do: nil
@@ -99,6 +103,7 @@ defmodule Graphqexl.Query do
   end
 
   @doc false
+  @spec postprocess_variables(String.t):: String.t
   defp postprocess_variables(variables) do
     variables
     |> String.replace(:argument |> Tokens.get |> Map.get(:close), "")
@@ -108,6 +113,7 @@ defmodule Graphqexl.Query do
   end
 
   @doc false
+  @spec preprocess(gql):: list(String.t)
   defp preprocess(gql) do
     gql
     |> pre_preprocess
@@ -119,6 +125,7 @@ defmodule Graphqexl.Query do
   end
 
   @doc false
+  @spec preprocess_line(String.t):: String.t
   defp preprocess_line(line) do
     line
     |> String.replace(:ignored_delimiter |> Tokens.get, "")
@@ -128,17 +135,23 @@ defmodule Graphqexl.Query do
   end
 
   @doc false
+  @spec pre_preprocess(gql):: String.t
   defp pre_preprocess(gql) do
     gql |> String.trim
   end
 
   @doc false
+  @spec preprocess_variables(String.t):: String.t
   defp preprocess_variables(variables) do
     variables
-    |> String.replace("#{:argument_delimiter |> Tokens.get}#{:space |> Tokens.get}", :argument_delimiter |> Tokens.get)
+    |> String.replace(
+         "#{:argument_delimiter |> Tokens.get}#{:space |> Tokens.get}",
+         :argument_delimiter |> Tokens.get
+       )
   end
 
   @doc false
+  @spec resolve!(t, Schema.t):: ResultSet.t
   defp resolve!(_query, _schema) do
     data = %{}
 #      query.operations
@@ -154,16 +167,15 @@ defmodule Graphqexl.Query do
   end
 
   @doc false
-  defp stack_pop(stack) do
-    stack |> List.pop_at(0)
-  end
+  @spec stack_pop(list):: term
+  defp stack_pop(stack), do: stack |> List.pop_at(0)
 
   @doc false
-  defp stack_push(stack, value) do
-    stack |> List.insert_at(0, value)
-  end
+  @spec stack_push(list, term):: list
+  defp stack_push(stack, value), do: stack |> List.insert_at(0, value)
 
   @doc false
+  @spec tokenize(String.t, tokenizing_map):: tokenizing_map
   defp tokenize(line, %{stack: stack, current: current, operations: operations}) do
     last_char = line |> String.at(-1)
     cond do
@@ -229,6 +241,7 @@ defmodule Graphqexl.Query do
   end
 
   @doc false
+  @spec tokenize_arguments(String.t | nil):: Map.t
   defp tokenize_arguments(nil), do: %{}
   defp tokenize_arguments(arguments) do
     arguments
@@ -250,6 +263,7 @@ defmodule Graphqexl.Query do
   end
 
   @doc false
+  @spec tokenize_variables(String.t | nil):: Map.t
   defp tokenize_variables(nil), do: %{}
   defp tokenize_variables(variables) do
     variables
@@ -271,6 +285,7 @@ defmodule Graphqexl.Query do
   end
 
   @doc false
+  @spec validate!(t, Schema.t):: boolean
   defp validate!(query, schema) do
     true = query.operations |> Enum.all?(&(Validator.valid?(&1, schema)))
   end

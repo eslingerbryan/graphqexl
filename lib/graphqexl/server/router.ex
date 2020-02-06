@@ -1,19 +1,16 @@
-alias Graphqexl.Schema.{
-  Field,
-  Interface,
-  Ref,
-  Required,
-  TEnum,
-  Type,
-  Union
-}
+alias Graphqexl.Server
 
 defmodule Graphqexl.Server.Router do
+  @moduledoc """
+  `Plug.Router`-based server `Plug` to serve as the main entrypoint for the development server. It
+  serves both the Graphql Playground developer UI as well as the GraphQL API.
+  """
+  @moduledoc since: "0.1.0"
   use Plug.Router
   require Logger
 
   plug :match
-  plug Graphqexl.Server.Plug.Schema
+  plug Server.Plug.Schema
   plug Plug.Parsers, parsers: [:urlencoded, :json],
                      pass: ["text/*"],
                      json_decoder: Jason
@@ -22,20 +19,22 @@ defmodule Graphqexl.Server.Router do
   get "/graphql" do
     Logger.debug("Starting request: #{conn |> request_log_str}")
     Logger.info("Finished request: #{conn |> request_log_str}")
-    Graphqexl.Server.Plug.call(conn, Graphqexl.Server.Plug.init([]))
+    conn |> Server.Plug.call([] |> Server.Plug.init)
   end
 
   post "/graphql" do
     Logger.debug("Starting request: #{conn |> request_log_str}")
     Logger.info("Finished request: 200 #{conn |> request_log_str}")
-    Graphqexl.Server.Plug.call(conn, Graphqexl.Server.Plug.init([]))
+    conn |> Server.Plug.call([] |> Server.Plug.init)
   end
 
   match _ do
     Logger.debug("Starting request: #{conn |> request_log_str}")
     Logger.info("Finished request: #{conn |> request_log_str}")
-    send_resp(conn, 404, "Not Found")
+    conn |> send_resp(404, "Not Found")
   end
 
+  @doc false
+  @spec request_log_str(Plug.Conn.t):: String.t
   defp request_log_str(conn), do: "[#{conn.method |> String.upcase}] #{conn.request_path}"
 end

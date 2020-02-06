@@ -1,4 +1,9 @@
 defmodule Graphqexl.Utils.FakeData do
+  @moduledoc """
+  Contains some basic fake post, comment and user data to use in development/testing.
+  """
+  @moduledoc since: "0.1.0"
+
   @comments %{
     "116ac2a5-6515-40e0-a483-e211acf82642" => %{
       id: "116ac2a5-6515-40e0-a483-e211acf82642",
@@ -171,8 +176,10 @@ defmodule Graphqexl.Utils.FakeData do
   def user_posts(id), do: @posts |> filter_by_author_id(id)
 
   @doc false
+  @spec author_id(Map.t):: String.t
   defp author_id(map), do: map |> Map.get(:author) |> Map.get(:id)
 
   @doc false
-  defp filter_by_author_id(map, id), do: map |> Enum.filter(fn {k, v} ->  id == v |> author_id  end)
+  @spec filter_by_author_id(Map.t, String.t):: list(Map.t)
+  defp filter_by_author_id(map, id), do: map |> Enum.filter(fn {_, v} ->  id == v |> author_id end)
 end

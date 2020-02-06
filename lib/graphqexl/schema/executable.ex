@@ -22,7 +22,7 @@ defmodule Graphqexl.Schema.Executable do
   """
   @doc since: "0.1.0"
   @spec handle_call(:get, tuple, term) :: Schema.t
-  def handle_call(:get, _, _), do: {:reply, schema, nil}
+  def handle_call(:get, _, _), do: {:reply, get_schema(), nil}
 
   @doc """
   Loads, parses and uses `:ets` to cache the configured schema definition.
@@ -81,20 +81,6 @@ defmodule Graphqexl.Schema.Executable do
     |> schema
   end
 
-  @doc """
-  Start callback for the `t:GenServer.t/0`, taking a single init arg specifying the file path of
-  the GraphQL schema to load and parse.
-
-  Returns:
-    {:ok, pid}         when successful
-    {:error, message}  when unsuccessful
-  """
-  @doc since: "0.1.0"
-  @spec start_link(String.t) :: {:ok, integer} | {:error, String.t}
-  def start_link(schema_file) do
-    GenServer.start_link(__MODULE__, schema_file, name: __MODULE__)
-  end
-
   @doc false
   defp create_post(_parent, _args, _context), do: FakeData.posts |> Enum.random
 
@@ -105,7 +91,9 @@ defmodule Graphqexl.Schema.Executable do
   defp get_user_comments(_parent, args, _context), do: args.userId |> FakeData.user_comments
 
   @doc false
-  defp schema, do: cache_get(:schema)
+  defp get_schema, do: cache_get(:schema)
+
+  @doc false
   defp schema(gql) do
     gql |> Schema.executable(%{
       createPost: &create_post/3,

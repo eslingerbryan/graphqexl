@@ -1,5 +1,23 @@
 defmodule Graphqexl.Tokens do
+  @moduledoc """
+  Mostly a databag module containing keywords, tokens and regex patterns related to the GraphQL
+  spec. Also contains functions for fetching them by key.
+  """
+  @moduledoc since: "0.1.0"
+
   defmodule Regex do
+    @moduledoc"""
+    Utility module with helper functions for working with `t:Regex.t/0`'s.
+    """
+    @moduledoc since: "0.1.0"
+
+    @doc """
+    Escapes the given character or sequence.
+
+    Returns: `t:String.t/0`
+    """
+    @doc since: "0.1.0"
+    @spec escape(String.t):: String.t
     def escape(char), do: "\\#{char}"
   end
 

@@ -14,12 +14,11 @@ alias Graphqexl.Tokens
 #alias Treex.Traverse
 
 defmodule Graphqexl.Schema do
-
   @moduledoc """
   Structured representation of a GraphQL schema, either built dynamically or
   parsed from a JSON document or GQL string.
   """
-
+  @moduledoc since: "0.1.0"
   defstruct(
     context: nil,
     enums: %{},
@@ -32,7 +31,7 @@ defmodule Graphqexl.Schema do
     unions: %{}
   )
 
-  @type component ::
+  @type component::
           TEnum.t |
           Interface.t |
           Mutation.t |
@@ -40,7 +39,6 @@ defmodule Graphqexl.Schema do
           Subscription.t |
           Type.t |
           Union.t
-
   @type gql :: String.t
   @type json :: Map.t
 
@@ -64,95 +62,68 @@ defmodule Graphqexl.Schema do
   Returns: `t:Graphqexl.Schema.t/0`
   """
   @doc since: "0.1.0"
-  @spec executable(gql, Map.t, Map.t | nil):: Graphqexl.Schema.t
-  def executable(gql_str, resolvers, context \\ nil) do
-    %{gql_str |> gql | resolvers: resolvers, context: context }
-  end
+  @spec executable(gql, Map.t, Map.t | nil):: t
+  def executable(gql_str, resolvers, context \\ nil),
+      do: %{gql_str |> gql | resolvers: resolvers, context: context }
 
-  @spec gql(gql | json) :: %Graphqexl.Schema{}
   @doc """
-  Parses a gql string into a `t:Graphqexl.Schema.t/0`.
+  Parses a `t:Graphqexl.Schema.gql/0` string into a `t:Graphqexl.Schema.t/0`.
 
-  Returns `t:Graphqexl.Schema.t/0`
+  Returns: `t:Graphqexl.Schema.t/0`
   """
   @doc since: "0.1.0"
+  @spec gql(gql | json) :: %Graphqexl.Schema{}
   def gql(gql_str) when is_binary(gql_str) do
     gql_str
     |> Dsl.preprocess
     |> split_lines
     |> Enum.reduce(%Graphqexl.Schema{}, &apply_line/2)
   end
-
-  @doc """
-  Parses a json map into a `t:Graphqexl.Schema.t/0`.
-
-  Returns `t:Graphqexl.Schema.t/0`
-  """
-  @doc since: "0.1.0"
   def gql(_json), do: %Graphqexl.Schema{}
 
   @doc """
-  Check whether a field is defined on the given schema.
+  Check whether a `t:Graphqexl.Schema.Field.t/0` is defined on the given `t:Graphqexl.Schema.t/0`.
 
-  Returns: `t:boolean`
+  Returns: `t:boolean/0`
   """
   @doc since: "0.1.0"
   @spec has_field?(Schema.t, atom):: boolean
-  def has_field?(_schema, _field) do
-    true # TODO: fix
-#    !is_nil(Traverse.traverse(schema, &({:continue, &1}), :bfs))
-  end
+  # TODO: fix
+  def has_field?(_schema, _field), do: true # !is_nil(Traverse.traverse(schema, &({:continue, &1}), :bfs))
 
-  @spec register(GraphqexlSchema.t, component):: Graphqexl.Schema.t
   @doc """
   Registers the given component on the given schema.
 
   Returns `t:Graphqexl.Schema.t/0`
   """
   @doc since: "0.1.0"
-  def register(schema, %TEnum{} = component) do
-    schema |> register(:enums, component)
-  end
-
-  def register(schema, %Interface{} = component) do
-    schema |> register(:interfaces, component)
-  end
-
-  def register(schema, %Mutation{} = component) do
-    schema |> register(:mutations, component)
-  end
-
-  def register(schema, %Query{} = component) do
-    schema |> register(:queries, component)
-  end
-
-  def register(schema, %Subscription{} = component) do
-    schema |> register(:subscriptions, component)
-  end
-
-  def register(schema, %Type{} = component) do
-    schema |> register(:types, component)
-  end
-
-  def register(schema, %Union{} = component) do
-    schema |> register(:unions, component)
-  end
+  @spec register(t, component):: t
+  def register(schema, %TEnum{} = component), do: schema |> register(:enums, component)
+  def register(schema, %Interface{} = component), do: schema |> register(:interfaces, component)
+  def register(schema, %Mutation{} = component), do: schema |> register(:mutations, component)
+  def register(schema, %Query{} = component), do: schema |> register(:queries, component)
+  def register(schema, %Type{} = component), do: schema |> register(:types, component)
+  def register(schema, %Union{} = component), do: schema |> register(:unions, component)
+  def register(schema, %Subscription{} = component),
+      do: schema |> register(:subscriptions, component)
 
   @doc false
-  defp register(schema, key, component) do
-    schema |> Map.update(key, %{}, &(&1 |> add_component(component)))
-  end
+  @spec register(t, atom, component):: t
+  defp register(schema, key, component),
+       do: schema |> Map.update(key, %{}, &(&1 |> add_component(component)))
 
   @doc false
-  defp add_component(map, component) do
-    map |> Map.update(component.name, component, &(&1))
-  end
+  @spec add_component(Map.t, component):: Map.t
+  defp add_component(map, component), do: map |> Map.update(component.name, component, &(&1))
 
   @doc false
+  @spec apply_line(list(String.t), t):: t
   defp apply_line([cmd | args], schema) do
     [str_name | fields_or_values] = args
     name = str_name |> String.to_atom
-    case cmd |> String.replace(:argument_placeholder_separator |> Tokens.get, "") |> String.to_atom do
+    case cmd
+         |> String.replace(:argument_placeholder_separator |> Tokens.get, "")
+         |> String.to_atom do
       :enum -> schema |> Dsl.enum(name, fields_or_values)
       :interface -> schema |> Dsl.interface(name, fields_or_values)
       :mutation -> schema |> Dsl.mutation(args)
@@ -191,16 +162,18 @@ defmodule Graphqexl.Schema do
   end
 
   @doc false
-  defp is_custom_scalar?(spec) do
-    spec |> list_head_contains(:custom_scalar_placeholder |> Tokens.get)
-  end
+  @spec is_custom_scalar?(String.t):: boolean
+  defp is_custom_scalar?(spec),
+       do: spec |> list_head_contains(:custom_scalar_placeholder |> Tokens.get)
 
   @doc false
+  @spec is_argument?(String.t):: boolean
   defp is_argument?(spec) do
     spec |> list_head_contains(:argument_delimiter |> Tokens.get)
   end
 
   @doc false
+  @spec list_head_contains(list, term):: boolean
   defp list_head_contains(list, needle) do
     list
     |> List.first
@@ -208,21 +181,23 @@ defmodule Graphqexl.Schema do
   end
 
   @doc false
-  def regex_escape(char), do: "\\#{char}"
-
-  @doc false
+  @spec semicolonize(String.t):: String.t
   defp semicolonize(value) do
     value |> String.replace(" ", :argument_placeholder_separator |> Tokens.get)
   end
 
   @doc false
+  @spec split_lines(String.t):: list(String.t)
   defp split_lines(preprocessed) do
     preprocessed
     |> String.split(:newline |> Tokens.get)
-    |> Enum.map(&(&1 |> String.replace("#{:argument_delimiter |> Tokens.get} ", :argument_delimiter |> Tokens.get)))
+    |> Enum.map(&(&1 |> String.replace(
+                          "#{:argument_delimiter |> Tokens.get} ",
+                          :argument_delimiter |> Tokens.get))
+       )
     |> Enum.map(fn spec ->
       Regex.replace(
-        ~r/(#{regex_escape(:argument |> Tokens.get |> Map.get(:open))}.*#{regex_escape(:argument |> Tokens.get |> Map.get(:close))})/,
+        ~r/(#{:argument |> Tokens.get |> Map.get(:open) |> Regex.escape}.*#{:argument |> Tokens.get |> Map.get(:close) |> Regex.escape})/,
         spec, &semicolonize/1
       )
     end)
