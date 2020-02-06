@@ -17,20 +17,20 @@ defmodule Graphqexl.Server.Router do
   plug :dispatch
 
   get "/graphql" do
-    Logger.debug("Starting request: #{conn |> request_log_str}")
-    Logger.info("Finished request: #{conn |> request_log_str}")
+    "Starting request: #{conn |> request_log_str}" |> Logger.debug
+    "Finished request: #{conn |> request_log_str}" |> Logger.info
     conn |> Server.Plug.call([] |> Server.Plug.init)
   end
 
   post "/graphql" do
-    Logger.debug("Starting request: #{conn |> request_log_str}")
-    Logger.info("Finished request: 200 #{conn |> request_log_str}")
+    "Starting request: #{conn |> request_log_str}" |> Logger.debug
+    "Finished request: 200 #{conn |> request_log_str}" |> Logger.info
     conn |> Server.Plug.call([] |> Server.Plug.init)
   end
 
   match _ do
-    Logger.debug("Starting request: #{conn |> request_log_str}")
-    Logger.info("Finished request: #{conn |> request_log_str}")
+    "Starting request: #{conn |> request_log_str}" |> Logger.debug
+    "Finished request: #{conn |> request_log_str}" |> Logger.info
     conn |> send_resp(404, "Not Found")
   end
 

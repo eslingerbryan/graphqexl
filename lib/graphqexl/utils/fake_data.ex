@@ -3,6 +3,7 @@ defmodule Graphqexl.Utils.FakeData do
   Contains some basic fake post, comment and user data to use in development/testing.
   """
   @moduledoc since: "0.1.0"
+
   @users %{
     "0d3633a8-c271-42c8-9e30-1913930306ff" => %{
       id: "0d3633a8-c271-42c8-9e30-1913930306ff",
@@ -72,22 +73,6 @@ defmodule Graphqexl.Utils.FakeData do
       parent: %{id: "5b439242-4ff4-4207-9f65-5f8f18fd8664"},
     },
   }
-  @doc """
-  Get a single comment by ID
-
-  Returns: `t:Map.t/0`
-  """
-  @doc since: "0.1.0"
-  @spec comment(String.t) :: Map.t
-  def comment(id), do: @comments |> Map.get(id)
-  @doc """
-  Get all comments
-
-  Returns: `[t:Map.t/0]`
-  """
-  @doc since: "0.1.0"
-  @spec comments :: list(Map.t)
-  def comments, do: @comments
 
   @posts %{
     "efb97c69-f27e-49c5-b823-57a8a414ac1f" => %{
@@ -137,6 +122,24 @@ defmodule Graphqexl.Utils.FakeData do
                    end
                  ) |> Enum.map(&(&1 |> elem(1))),
   }
+
+  @doc """
+  Get a single comment by ID
+
+  Returns: `t:Map.t/0`
+  """
+  @doc since: "0.1.0"
+  @spec comment(String.t) :: Map.t
+  def comment(id), do: @comments |> Map.get(id)
+  @doc """
+  Get all comments
+
+  Returns: `[t:Map.t/0]`
+  """
+  @doc since: "0.1.0"
+  @spec comments :: list(Map.t)
+  def comments, do: @comments
+
   @doc """
   Get a single post by ID
 
