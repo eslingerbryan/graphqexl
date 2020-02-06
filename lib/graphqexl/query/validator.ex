@@ -2,15 +2,27 @@ alias Graphqexl.{
   Query,
   Schema,
 }
-alias Graphqexl.Schema.Type
+alias Graphqexl.Schema.{
+  Field,
+  Type,
+}
+alias Treex.Tree
 
 defmodule Graphqexl.Query.Validator do
-  @moduledoc "Validate a given query against a given schema"
+  @moduledoc """
+  Validate a given `t:Graphqexl.Query.t/0` against a given `t:Graphqexl.Schema.t/0`
+
+  Specifically, it checks that:
+  1. All leaves are scalar types
+  1. All types and fields are defined in the schema
+  1. All required arguments are provided
+  """
+  @moduledoc since: "0.1.0"
 
   @doc """
   Check whether a query is valid in a given schema
 
-  Returns: `t:boolean`
+  Returns: `t:boolean.t/0`
   """
   @doc since: "0.1.0"
   @spec valid?(Query.t, Schema.t):: boolean
@@ -21,12 +33,14 @@ defmodule Graphqexl.Query.Validator do
   end
 
   @doc false
+  @spec has_all_required_arguments?(Query.t, Schema.t):: boolean
   defp has_all_required_arguments?(_query, _schema) do
     # TODO: implement
     true
   end
 
   @doc false
+  @spec is_scalar?(Field.t, Schema.t):: boolean
   defp is_scalar?(field, schema) do
     cond do
       schema.enums |> Enum.member?(field) -> true
@@ -40,20 +54,16 @@ defmodule Graphqexl.Query.Validator do
   end
 
   @doc false
-  defp leaves(_tree) do
-    # TODO: implement on the Tree module
-    []
-  end
-
-  @doc false
+  @spec scalar_leaves?(Query.t, Schema.t):: boolean
   defp scalar_leaves?(query, schema) do
     # TODO: implement
     query.fields
-    |> leaves
+    |> Tree.leaves
     |> Enum.filter(&(!is_scalar?(&1, schema)))
   end
 
   @doc false
+  @spec valid_types_and_fields?(Query.t, Schema.t):: boolean
   defp valid_types_and_fields?(_query, _schema) do
     true
     # TODO: implement as a tree traversal

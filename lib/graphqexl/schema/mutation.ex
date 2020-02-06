@@ -3,7 +3,13 @@ alias Graphqexl.Schema.Ref
 defmodule Graphqexl.Schema.Mutation do
   @moduledoc """
   GraphQL mutation
+
+  Example:
+    type Mutation {
+      createUser(firstName: String, lastName: String, email: Email!): User
+    }
   """
+  @moduledoc since: "0.1.0"
   defstruct(
     arguments: %{},
     deprecated: false,
@@ -18,7 +24,7 @@ defmodule Graphqexl.Schema.Mutation do
       deprecated: boolean,
       deprecation_reason: String.t,
       description: String.t,
-      arguments: Map.t,
+      arguments: %{atom => term},
       name: String.t,
       return: Ref.t
     }

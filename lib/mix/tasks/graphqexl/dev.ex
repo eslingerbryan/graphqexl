@@ -1,8 +1,4 @@
 defmodule Mix.Tasks.Graphqexl.Dev do
-  use Mix.Task
-
-  @shortdoc "Starts a server for the given GraphQL schema"
-
   @moduledoc """
   Starts the application by configuring all endpoints servers to run.
 
@@ -25,17 +21,24 @@ defmodule Mix.Tasks.Graphqexl.Dev do
 
       mix do deps.loadpaths --no-deps-check, graphqexl.dev
   """
+  @moduledoc since: "0.1.0"
+  @shortdoc "Starts a server for the given GraphQL schema"
+  use Mix.Task
+
+  @doc """
+  Run the development server.
+
+  TODO: args
+  """
+  @doc since: "0.1.0"
+  @spec run(list(term)):: :ok
+  def run(args), do: Mix.Tasks.Run.run run_args() ++ args
 
   @doc false
-  def run(args) do
-    Mix.Tasks.Run.run run_args() ++ args
-  end
+  @spec run_args:: list(String.t) | []
+  defp run_args, do: if iex_running?(), do: [], else: ["--no-halt"]
 
-  defp run_args do
-    if iex_running?(), do: [], else: ["--no-halt"]
-  end
-
-  defp iex_running? do
-    Code.ensure_loaded?(IEx) and IEx.started?()
-  end
+  @doc false
+  @spec iex_running?:: boolean
+  defp iex_running?, do: Code.ensure_loaded?(IEx) and IEx.started?()
 end

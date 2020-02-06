@@ -1,15 +1,27 @@
-alias Graphqexl.Schema.Ref
+alias Graphqexl.Schema.{
+  Field,
+  Ref,
+}
+alias Treex.Tree
 
 defmodule Graphqexl.Schema.Type do
   @moduledoc """
-  GraphQL type
-  """
+  GraphQL custom type
 
+  Example:
+    type User {
+      id: Id!
+      firstName: String
+      lastName: String
+      email: Email!
+    }
+  """
+  @moduledoc since: "0.1.0"
   defstruct(
     deprecated: false,
     deprecation_reason: "",
     description: "",
-    fields: %{},
+    fields: %Tree{},
     implements: nil,
     name: ""
   )
@@ -19,18 +31,18 @@ defmodule Graphqexl.Schema.Type do
       deprecated: boolean,
       deprecation_reason: String.t,
       description: String.t,
-      fields: Map.t,
+      fields: Tree.t,
       implements: Ref.t | nil,
       name: String.t
     }
 
   @doc """
-  Lists the fields available on the given `t:Graphqexl.Schema.Type.t/0`.
+  Lists the `t:Graphqexl.Schema.Field.t/0`s available on the given `t:Graphqexl.Schema.Type.t/0`.
 
   Returns: `[t:Graphqexl.Schema.Field.t/0]`
   """
   @doc since: "0.1.0"
-  @spec fields(Graphqexl.Schema.Type.t):: list(Graphqexl.Schema.Field.t)
+  @spec fields(t):: list(Field.t)
   def fields(type) do
     implemented_fields = if is_nil(type.implements) do
       []
@@ -41,12 +53,12 @@ defmodule Graphqexl.Schema.Type do
   end
 
   @doc """
-  Checks whether the given field is a custom scalar type.
+  Checks whether the given `t:Graphqexl.Schema.Field` is a custom scalar type.
 
-  Returns: `t:boolean`
+  Returns: `t:boolean/0`
   """
   @doc since: "0.1.0"
-  @spec is_custom_scalar?(Graphqexl.Schema.Type.t, atom):: boolean
+  @spec is_custom_scalar?(t, atom):: boolean
   def is_custom_scalar?(type, field) do
     [:String, :Integer, :Float, :Boolean, :Id] |> type.implements?(field)
   end

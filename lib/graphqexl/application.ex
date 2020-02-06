@@ -1,13 +1,14 @@
 alias Graphqexl.Server.Router
 
 defmodule Graphqexl.Application do
-  require Logger
-  # See https://hexdocs.pm/elixir/Application.html
-  # for more information on OTP Applications
   @moduledoc false
-
+  require Logger
   use Application
 
+  @type on_start:: {:ok, pid} | {:error, {:already_started, pid} | {:shutdown, term} | term}
+
+  @doc false
+  @spec start(term, list(term)):: on_start
   def start(_type, _args) do
     Logger.info("Starting server at http://localhost:4000")
     children = [
