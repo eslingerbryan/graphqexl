@@ -3,6 +3,32 @@ defmodule Graphqexl.Utils.FakeData do
   Contains some basic fake post, comment and user data to use in development/testing.
   """
   @moduledoc since: "0.1.0"
+  @users %{
+    "0d3633a8-c271-42c8-9e30-1913930306ff" => %{
+      id: "0d3633a8-c271-42c8-9e30-1913930306ff",
+      created_at: "2020-01-25 03:02:06",
+      updated_at: "2019-03-12 01:46:22",
+      firstName: "Joe",
+      lastName: "Schmoe",
+      email: "joe.schmoe@gmail.com"
+    },
+    "96fd2987-76a5-431b-babd-73b643f14347" => %{
+      id: "96fd2987-76a5-431b-babd-73b643f14347",
+      created_at: "2019-12-29 23:42:53",
+      updated_at: "2019-01-30 07:45:36",
+      firstName: "Jill",
+      lastName: "Somebody",
+      email: "jsomebody@gmail.com",
+    },
+    "906bc692-54b9-4829-a4a5-101b55c84601" => %{
+      id: "906bc692-54b9-4829-a4a5-101b55c84601",
+      created_at: "2019-02-26 19:56:19",
+      updated_at: "2019-03-01 20:08:30",
+      firstName: "Testy",
+      lastName: "McTesterson",
+      email: "testy.mctesterson@gmail.com",
+    },
+  }
 
   @comments %{
     "116ac2a5-6515-40e0-a483-e211acf82642" => %{
@@ -10,7 +36,7 @@ defmodule Graphqexl.Utils.FakeData do
       created_at: "2020-01-08 18:12:15",
       updated_at: "2019-12-20 18:12:17",
       text: "Here is a comment",
-      author: %{id: "0d3633a8-c271-42c8-9e30-1913930306ff"},
+      author: @users |> Map.get("0d3633a8-c271-42c8-9e30-1913930306ff"),
       parent: %{id: "efb97c69-f27e-49c5-b823-57a8a414ac1f"},
     },
     "5077d49f-3fee-49b3-9af0-5258f424a9a8" => %{
@@ -18,7 +44,7 @@ defmodule Graphqexl.Utils.FakeData do
       created_at: "2019-07-26 14:05:53",
       updated_at: "2019-04-19 02:16:51",
       text: "Here is a second comment",
-      author: %{id: "96fd2987-76a5-431b-babd-73b643f14347"},
+      author: @users |> Map.get("96fd2987-76a5-431b-babd-73b643f14347"),
       parent: %{id: "efb97c69-f27e-49c5-b823-57a8a414ac1f"},
     },
     "b0eecb6b-2333-45c0-891a-2bc80a4a7091" => %{
@@ -26,7 +52,7 @@ defmodule Graphqexl.Utils.FakeData do
       created_at: "2019-08-03 05:09:08",
       updated_at: "2019-02-08 02:02:14",
       text: "Here is a reply",
-      author: %{id: "96fd2987-76a5-431b-babd-73b643f14347"},
+      author: @users |> Map.get("96fd2987-76a5-431b-babd-73b643f14347"),
       parent: %{id: "5077d49f-3fee-49b3-9af0-5258f424a9a8"},
     },
     "5b439242-4ff4-4207-9f65-5f8f18fd8664" => %{
@@ -34,7 +60,7 @@ defmodule Graphqexl.Utils.FakeData do
       created_at: "2019-04-03 05:33:34",
       updated_at: "2019-12-16 18:51:54",
       text: "I disagree with your overall premise",
-      author: %{id: "0d3633a8-c271-42c8-9e30-1913930306ff"},
+      author: @users |> Map.get("0d3633a8-c271-42c8-9e30-1913930306ff"),
       parent: %{id: "b1148cb4-add2-4c09-96eb-fceefa49be0d"},
     },
     "1b933f56-a9aa-4da3-8fad-6f6990b0420b" => %{
@@ -42,7 +68,7 @@ defmodule Graphqexl.Utils.FakeData do
       created_at: "2019-01-06 14:57:28",
       updated_at: "2019-06-01 06:32:00",
       text: "I disagree with your disagreement.",
-      author: %{id: "906bc692-54b9-4829-a4a5-101b55c84601"},
+      author: @users |> Map.get("906bc692-54b9-4829-a4a5-101b55c84601"),
       parent: %{id: "5b439242-4ff4-4207-9f65-5f8f18fd8664"},
     },
   }
@@ -76,7 +102,13 @@ defmodule Graphqexl.Utils.FakeData do
       voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat
       cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
       """,
-      author: %{id: "906bc692-54b9-4829-a4a5-101b55c84601"},
+      author: @users |> Map.get("906bc692-54b9-4829-a4a5-101b55c84601"),
+      comments: @comments
+                |> Enum.filter(
+                     fn({_, comment}) ->
+                       comment.parent.id == "efb97c69-f27e-49c5-b823-57a8a414ac1f"
+                     end
+                   ) |> Enum.map(&(&1 |> elem(1))),
     },
     "b1148cb4-add2-4c09-96eb-fceefa49be0d" => %{
       id: "b1148cb4-add2-4c09-96eb-fceefa49be0d",
@@ -96,8 +128,14 @@ defmodule Graphqexl.Utils.FakeData do
       therefore always holds in these matters to this principle of selection: he rejects pleasures
       to secure other greater pleasures, or else he endures pains to avoid worse pains.
       """,
-      author: %{id: "906bc692-54b9-4829-a4a5-101b55c84601"},
+      author: @users |> Map.get("906bc692-54b9-4829-a4a5-101b55c84601"),
     },
+    comments: @comments
+              |> Enum.filter(
+                   fn({_, comment}) ->
+                     comment.parent.id == "b1148cb4-add2-4c09-96eb-fceefa49be0d"
+                   end
+                 ) |> Enum.map(&(&1 |> elem(1))),
   }
   @doc """
   Get a single post by ID
@@ -116,32 +154,6 @@ defmodule Graphqexl.Utils.FakeData do
   @spec posts :: list(Map.t)
   def posts, do: @posts
 
-  @users %{
-    "0d3633a8-c271-42c8-9e30-1913930306ff" => %{
-      id: "0d3633a8-c271-42c8-9e30-1913930306ff",
-      created_at: "2020-01-25 03:02:06",
-      updated_at: "2019-03-12 01:46:22",
-      firstName: "Joe",
-      lastName: "Schmoe",
-      email: "joe.schmoe@gmail.com"
-    },
-    "96fd2987-76a5-431b-babd-73b643f14347" => %{
-      id: "96fd2987-76a5-431b-babd-73b643f14347",
-      created_at: "2019-12-29 23:42:53",
-      updated_at: "2019-01-30 07:45:36",
-      firstName: "Jill",
-      lastName: "Somebody",
-      email: "jsomebody@gmail.com",
-    },
-    "906bc692-54b9-4829-a4a5-101b55c84601" => %{
-      id: "906bc692-54b9-4829-a4a5-101b55c84601",
-      created_at: "2019-02-26 19:56:19",
-      updated_at: "2019-03-01 20:08:30",
-      firstName: "Testy",
-      lastName: "McTesterson",
-      email: "testy.mctesterson@gmail.com",
-    },
-  }
   @doc """
   Get a single user by ID
 
