@@ -10,8 +10,8 @@ defmodule Treex.Traverse do
   @type tree:: Tree.t
   @type history:: [any]
   @type result:: {:continue, any} | {:stop, any}
-  @type operation:: (any, any, history -> result)
-  @type stack:: [tree] | []
+  @type operation:: (tree, history -> result)
+  @type stack::list(tree) | []
   @type queue:: :queue.queue
   @type collection:: stack | queue
 
@@ -41,13 +41,10 @@ defmodule Treex.Traverse do
     ..(1)>                             :bfs)
     [4, 3, 2, 1]
   """
+  @doc since: "0.1.0"
   @spec traverse(tree, operation, traverse):: history
-  def traverse(tree, operation, type) do
-    case type do
-      :bfs -> tree |> tree_insert(new_queue()) |> bfs(operation, [])
-      :dfs -> tree |> tree_insert(new_stack()) |> dfs(operation, [])
-    end
-  end
+  def traverse(tree, operation, :bfs), do: tree |> tree_insert(new_queue()) |> bfs(operation, [])
+  def traverse(tree, operation, :dfs), do: tree |> tree_insert(new_stack()) |> dfs(operation, [])
 
   @doc false
   @spec apply_operation(operation, tree, history):: result

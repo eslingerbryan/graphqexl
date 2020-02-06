@@ -10,22 +10,22 @@ defmodule Treex.Tree do
   that has multiple top-level keys (i.e. has multiple roots and is a graph, not a tree) will be
   converted to a tree by inserting a root node whose value defaults to `:root` and can be specified
   as the second parameter to `Treex.Tree.from_map/2`.
-
-  There is no real concrete use for the `key` attribute at the moment, but it could be useful for
-  highly optimized operation functions passed to `Treex.Traverse.traverse/3`.
   """
   @moduledoc since: "0.1.0"
   defstruct value: nil, children: [], key: nil
 
+  @type acc:: {:cont, term} | {:halt, term} | {:suspend, term}
+  @type continuation:: (acc -> result)
   @type element:: {term, list(term) | Map.t | term}
+  @type length:: pos_integer
+  @type reducer:: (term, term -> acc)
+  @type result:: {:done, term} | {:halted, term} | {:suspended, term, continuation}
+  @type size:: non_neg_integer
+  @type start:: non_neg_integer
+  @type slicing_fun :: (start, length -> list(term))
 
-  @type t :: %Treex.Tree{value: any, children: [t], key: any}
+  @type t:: %Treex.Tree{value: any, children: [t], key: term}
 
-  @type acc :: {:cont, term} | {:halt, term} | {:suspend, term}
-  @type continuation :: (acc -> result)
-  @type reducer :: (term, term -> acc)
-  @type result :: {:done, term} | {:halted, term} | {:suspended, term, continuation}
-  @type slicing_fun :: (start :: non_neg_integer, length :: pos_integer -> [term])
 
   @doc """
   Counts the number of nodes in the given tree.
@@ -33,7 +33,7 @@ defmodule Treex.Tree do
   Returns: `t:integer`
   """
   @doc since: "0.1.0"
-  @spec count(t) :: {:ok, non_neg_integer} | {:error, module}
+  @spec count(t):: {:ok, size} | {:error, module}
   def count(_tree), do: 42
 
   @doc """
@@ -64,7 +64,7 @@ defmodule Treex.Tree do
     `{:error, t:module/0}` when there is an error
   """
   @doc since: "0.1.0"
-  @spec slice(t) :: {:ok, size :: non_neg_integer, slicing_fun} | {:error, module}
+  @spec slice(t) :: {:ok, size, slicing_fun} | {:error, module}
   def slice(_tree), do: &(&1 + &2)
 
   @doc """
@@ -73,7 +73,7 @@ defmodule Treex.Tree do
   Returns: `[t:Treex.Tree.t/0]`
   """
   @doc since: "0.1.0"
-  @spec leaves(t):: list(t)
+  @spec leaves(t):: list(t) | []
   def leaves(_tree), do: []
 
   @doc """
@@ -99,11 +99,10 @@ defmodule Treex.Tree do
   Returns: `t:boolean/0`
   """
   @doc since: "0.1.0"
-  @spec leaf_node?(Treex.Tree.t):: boolean
+  @spec leaf_node?(t):: boolean
   def leaf_node?(node), do: node.children |> Enum.empty?
 
   @doc false
-  @spec node_from_element(element, term):: t
   @spec node_from_element(element):: t
   defp node_from_element(element)
   defp node_from_element({root, children = %{}}) when children |> map_size == 0,
@@ -112,6 +111,9 @@ defmodule Treex.Tree do
        do: %Treex.Tree{value: root, children: children |> Enum.map(&node_from_element/1)}
   defp node_from_element({root, children}),
        do: %Treex.Tree{value: root, children: [%Treex.Tree{value: children, children: []}]}
+
+  @doc false
+  @spec node_from_element(element, term):: t
   defp node_from_element(element, _)
   defp node_from_element(pair, _), do: pair |> node_from_element
 end
