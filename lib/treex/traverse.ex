@@ -1,109 +1,104 @@
+alias Treex.Tree
+
 defmodule Treex.Traverse do
   @moduledoc """
-    Basic tree traversal algoritms.
-    It implements depth-first and breadth-first traverse algorithms
+  Basic tree traversal algorithms, implementing depth-first and breadth-first traversal.
   """
-  alias Treex.Tree
+  @moduledoc since: "0.1.0"
 
-  @type traverse() :: :dfs | :bfs
-  @type tree() :: Tree.t()
-  @type history() :: [any]
-  @type result() :: {:continue, any} | {:stop, any}
-  @type operation() :: (any, any, history -> result)
-  @type stack() :: [tree] | []
-  @type queue() :: :queue.queue()
-  @type collection() :: stack | queue
+  @type traverse:: :dfs | :bfs
+  @type tree:: Tree.t
+  @type history:: [any]
+  @type result:: {:continue, any} | {:stop, any}
+  @type operation:: (any, any, history -> result)
+  @type stack:: [tree] | []
+  @type queue:: :queue.queue
+  @type collection:: stack | queue
 
   @doc """
-    Main function. You need to pass the tree structure,
-    the function operation and the algorithm to use.
-    An operation function must have the type: (any, any, history -> result)
-    with the form: fn value, key, history -> body end
-    where value and key are the node's values and keys, and
-    history is the accumulated list of traverse operated nodes.
+  Traverse the given tree and invoke the given operation function on each node.
+  The function operation and the algorithm to use (one of `:bfs` or `:dfs`).
 
-    Returns list with the result of the operation on each node
+  An operation function must have the type:
+    `(t:Treex.Tree.t/0, t:Treex.Tree.history -> t:Treex.Tree.result/0)`
+  with the form:
+    `fn node, history -> body end`
+  where `node` is the current node and `history` is the accumulated list of traverse operated nodes.
+
+  Returns: `[t:Treex.Tree.result/0]`
 
   ## Examples
-   iex> Treex.TreeTraversal.traverse(nil, fn x, _, _ -> {:continue, x} end, :bfs)
-   []
+    iex> Treex.TreeTraversal.traverse(nil, fn x, _, _ -> {:continue, x} end, :bfs)
+    []
 
-   iex> Treex
-   ..(1)> .Traverse
-   ..(1)> .traverse(%Treex.Tree{value: 1,
-   ..(1)>                             children: [%Treex.Tree{value: 2}, 
-   ..(1)>                                        %Treex.Tree{value: 3},
-   ..(1)>                                        %Treex.Tree{value: 4}]},
-   ..(1)>                               fn x, _, _ -> {:continue, x} end,
-   ..(1)>                             :bfs)
+    iex> Treex
+    ..(1)> .Traverse
+    ..(1)> .traverse(%Treex.Tree{value: 1,
+    ..(1)>                             children: [%Treex.Tree{value: 2},
+    ..(1)>                                        %Treex.Tree{value: 3},
+    ..(1)>                                        %Treex.Tree{value: 4}]},
+    ..(1)>                               fn x, _, _ -> {:continue, x} end,
+    ..(1)>                             :bfs)
     [4, 3, 2, 1]
   """
-  @spec traverse(tree, operation, traverse) :: history
-  def traverse(tree, operation, type)
+  @spec traverse(tree, operation, traverse):: history
   def traverse(tree, operation, type) do
     case type do
-      :dfs ->
-        new_stack() |> tree_insert(tree) |> dfs(operation, [])
-
-      :bfs ->
-        new_queue() |> tree_insert(tree) |> bfs(operation, [])
+      :bfs -> tree |> tree_insert(new_queue()) |> bfs(operation, [])
+      :dfs -> tree |> tree_insert(new_stack()) |> dfs(operation, [])
     end
   end
 
-  @spec dfs(stack, operation, history) :: history
-  defp dfs(stack, operation, history)
-  defp dfs([], _, history), do: history
-  defp dfs([%Tree{value: value, key: key, children: children} | stack], operation, history) do
-    next(&dfs/3, stack, value, key, children, operation, history)
-  end
-
-  @spec bfs(queue, operation, history) :: history
-  defp bfs(queue, operation, history)
-  defp bfs({[], []}, _, history), do: history
-  defp bfs(queue, operation, history) do
-    {{:value, %Tree{value: value, key: key, children: children}}, new_queue} = :queue.out(queue)
-    next(&bfs/3, new_queue, value, key, children, operation, history)
-  end
-
-  @spec tree_insert(collection, tree) :: collection
-  defp tree_insert(collection, tree)
-  defp tree_insert(collection, nil), do: collection
-  defp tree_insert(stack, tree) when is_list(stack), do: [tree | stack]
-  defp tree_insert(queue, tree), do: :queue.in(tree, queue)
-
-  @spec next(function, collection, any, any, [tree], operation, history) :: history
-  defp next(named_function, collection, value, key, children, operation, history) do
-    case apply_operation(operation, value, key, history) do
-      {:stop, res} ->
-        [res | history]
-
-      {:continue, res} ->
-        children
-        |> Enum.reduce(
-             collection,
-             fn tree, acc ->
-               tree_insert(acc, tree)
-             end
-           )
-        |> named_function.(operation, [res | history])
-    end
-  end
-
-  @spec apply_operation(operation, any, any, history) :: result
-  defp apply_operation(operation, value, key, history) do
+  @doc false
+  @spec apply_operation(operation, tree, history):: result
+  defp apply_operation(operation, node, history) do
     arity = :erlang.fun_info(operation)[:arity]
 
-    if arity != 3 do
-      raise "Function #{operation} has invalid arity.
-              Expected 3, got #{arity}."
+    if arity != 2 do
+      raise "Function #{operation |> inspect} has invalid arity. Expected 3, got #{arity}."
     else
-      operation.(value, key, history)
+      operation.(node, history)
     end
   end
 
-  @spec new_stack() :: stack
+  @doc false
+  @spec bfs(queue, operation, history):: history
+  defp bfs({[], []}, _, history), do: history
+  defp bfs(queue, operation, history) do
+    {{:value, node}, new_queue} = :queue.out(queue)
+    new_queue |> next(&bfs/3, node, operation, history)
+  end
+
+  @doc false
+  @spec dfs(stack, operation, history):: history
+  defp dfs(stack, operation, history)
+  defp dfs([], _, history), do: history
+  defp dfs([node | stack], operation, history), do: stack |> next(&dfs/3, node, operation, history)
+
+  @doc false
+  @spec next(collection, function, tree, operation, history):: history
+  defp next(collection, named_function, node, operation, history) do
+    case apply_operation(operation, node, history) do
+      {:continue, res} ->
+        node.children
+        |> Enum.reduce(collection, &tree_insert/2)
+        |> named_function.(operation, [res | history])
+      {:stop, res} -> [res | history]
+    end
+  end
+
+  @doc false
+  @spec new_stack:: stack
   defp new_stack, do: []
 
-  @spec new_queue() :: queue
-  defp new_queue, do: :queue.new()
+  @doc false
+  @spec new_queue:: queue
+  defp new_queue, do: :queue.new
+
+  @doc false
+  @spec tree_insert(tree, collection):: collection
+  defp tree_insert(tree, collection)
+  defp tree_insert(nil, collection), do: collection
+  defp tree_insert(tree, stack) when is_list(stack), do: [tree | stack]
+  defp tree_insert(tree, queue), do: tree |> :queue.in(queue)
 end
