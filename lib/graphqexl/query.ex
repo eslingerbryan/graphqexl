@@ -19,8 +19,9 @@ defmodule Graphqexl.Query do
   @moduledoc since: "0.1.0"
   defstruct operations: []
 
-  @type gql :: String.t
-  @type json :: %{String.t => term}
+  @type gql:: String.t
+  @type json:: %{String.t => term}
+  @type resolver_fun:: (Map.t, Map.t, Map.t -> term)
   @type tokenizing_map:: %{stack: list, current: Operation.t, operations: list(Operation.t)}
 
   @type t :: %Graphqexl.Query{operations: list(Operation.t)}
@@ -31,7 +32,7 @@ defmodule Graphqexl.Query do
   Returns: `t:Graphqexl.Query.ResultSet.t/0`
   """
   @doc since: "0.1.0"
-  @spec execute(Graphqexl.Query.t, Schema.t) :: ResultSet.t
+  @spec execute(t, Schema.t) :: ResultSet.t
   def execute(query, schema) do
     query
     |> validate!(schema)
@@ -45,7 +46,7 @@ defmodule Graphqexl.Query do
   Returns: `t:Graphqexl.Query.t/0`
   """
   @doc since: "0.1.0"
-  @spec parse(gql):: Query.t
+  @spec parse(gql):: t
   def parse(gql) when is_binary(gql) do
     %Graphqexl.Query{
       operations:
@@ -62,7 +63,7 @@ defmodule Graphqexl.Query do
   Returns: `t:Graphqexl.Query.t/0`
   """
   @doc since: "0.1.0"
-  @spec parse(json):: Query.t
+  @spec parse(json):: t
   def parse(_json) # TODO: convert bare map to %Query{}
 
   @doc false
@@ -96,7 +97,7 @@ defmodule Graphqexl.Query do
   end
 
   @doc false
-  @spec insert(Operation.t, (_, _, _ -> term), Map.t):: Map.t | list(Map.t)
+  @spec invoke!(Operation.t, resolver_fun, Map.t):: Map.t | list(Map.t)
   defp invoke!(operation, resolver, context) do
     # TODO: probably want to do the error handling here, and return a {:ok, data} or {:error, errors} type of structure
     # TODO: parent context (i.e. where in the current query tree is this coming from)
