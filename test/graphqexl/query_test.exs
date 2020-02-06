@@ -9,9 +9,11 @@ alias Graphqexl.Utils.FakeData
 defmodule Graphqexl.QueryTest do
   use ExUnit.Case
 
+  @post_id "efb97c69-f27e-49c5-b823-57a8a414ac1f"
+
   @query """
     # comments don't count
-    query getSinglePost($postId: "foo") {
+    query getSinglePost($postId: "#{@post_id}") {
      getPost(id: $postId) {
        title
        text
@@ -89,7 +91,7 @@ defmodule Graphqexl.QueryTest do
         type: :query,
         user_defined_name: :getSinglePost,
         variables: %{
-          postId: "foo",
+          postId: "#{@post_id}",
         }
       },
     ]
@@ -172,8 +174,35 @@ defmodule Graphqexl.QueryTest do
     }
   """ |> Schema.executable(@resolvers)
 
+  @expected_query_result %ResultSet{
+    data: %{
+      getSinglePost: %{
+        title: "This is a cool post",
+        author: %{firstName: "Testy", lastName: "McTesterson"},
+        comments: [
+          %{
+            text: "Here is a comment",
+            author: %{firstName: "Joe", lastName: "Schmoe"},
+          },
+          %{
+            text: "Here is a second comment",
+            author: %{firstName: "Jill", lastName: "Somebody"},
+          },
+        ],
+        text: """
+        Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut
+        labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco
+        laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in
+        voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat
+        cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
+        """,
+      },
+    },
+    errors: %{},
+  }
+
   test "execute" do
-    assert @expected_query |> Query.execute(@schema) == %ResultSet{}
+    assert @expected_query |> Query.execute(@schema) == @expected_query_result
   end
 
   test "parse" do
