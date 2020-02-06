@@ -1,5 +1,3 @@
-alias Treex.Traverse
-
 defmodule Treex.Tree do
   @moduledoc """
   Primarily a struct for representing tree data to be processed with the `Tree.Traverse` module.
