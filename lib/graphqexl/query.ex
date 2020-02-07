@@ -190,6 +190,7 @@ defmodule Graphqexl.Query do
     query.operations
     |> Enum.reduce(%ResultSet{}, &(&2 |> insert(&1, schema, context)))
     |> ResultSet.validate!(schema)
+    |> ResultSet.filter(query.operations |> List.first |> Map.get(:fields))
   end
 
   @doc false
@@ -245,10 +246,18 @@ defmodule Graphqexl.Query do
           0 ->
             %{stack: [], current: nil, operations: operations}
           1 ->
-            new_operations =
-              operations
-              |> stack_push(%{current | fields: stack |> stack_pop |> elem(0) |> Enum.into(%{}) |> Tree.from_map})
-            %{stack: [], current: current, operations: new_operations}
+            %{
+              stack: [],
+              current: current,
+              operations: operations |> stack_push(%{
+                current |
+                fields: stack
+                        |> stack_pop
+                        |> elem(0)
+                        |> Enum.into(%{})
+                        |> Tree.from_map(current.user_defined_name)
+              })
+            }
           _ ->
             {top, rest} = stack |> stack_pop
             {new_top, remaining} = rest |> stack_pop

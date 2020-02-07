@@ -41,7 +41,7 @@ defmodule Graphqexl.QueryTest do
           id: :postId
         },
         fields: %Treex.Tree{
-          value: :root,
+          value: :getSinglePost,
           children: [
             %Treex.Tree{
               children: [
