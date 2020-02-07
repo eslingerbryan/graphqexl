@@ -19,8 +19,9 @@ defmodule Graphqexl.Query do
   @moduledoc since: "0.1.0"
   defstruct operations: []
 
-  @type gql :: String.t
-  @type json :: %{String.t => term}
+  @type gql:: String.t
+  @type json:: %{String.t => term}
+  @type resolver_fun:: (Map.t, Map.t, Map.t -> term)
   @type tokenizing_map:: %{stack: list, current: Operation.t, operations: list(Operation.t)}
 
   @type t :: %Graphqexl.Query{operations: list(Operation.t)}
@@ -31,7 +32,7 @@ defmodule Graphqexl.Query do
   Returns: `t:Graphqexl.Query.ResultSet.t/0`
   """
   @doc since: "0.1.0"
-  @spec execute(Graphqexl.Query.t, Schema.t) :: ResultSet.t
+  @spec execute(t, Schema.t) :: ResultSet.t
   def execute(query, schema) do
     query
     |> validate!(schema)
@@ -45,7 +46,7 @@ defmodule Graphqexl.Query do
   Returns: `t:Graphqexl.Query.t/0`
   """
   @doc since: "0.1.0"
-  @spec parse(gql):: Query.t
+  @spec parse(gql):: t
   def parse(gql) when is_binary(gql) do
     %Graphqexl.Query{
       operations:
@@ -62,8 +63,47 @@ defmodule Graphqexl.Query do
   Returns: `t:Graphqexl.Query.t/0`
   """
   @doc since: "0.1.0"
-  @spec parse(json):: Query.t
+  @spec parse(json):: t
   def parse(_json) # TODO: convert bare map to %Query{}
+
+  @doc false
+  @spec hydrate_arguments(Map.t, Map.t):: Map.t
+  defp hydrate_arguments(arguments, variables) do
+    arguments
+    |> Enum.reduce(%{}, fn ({key, value}, hydrated_args) ->
+      val = if is_atom(value) do
+        variables |> Map.get(value)
+      else
+        value
+      end
+      hydrated_args |> Map.update(key, val, &(&1))
+    end)
+  end
+
+  @doc false
+  @spec insert(ResultSet.t, Operation.t, Schema.t, Map.t):: ResultSet.t
+  defp insert(result_set, operation, schema, context) do
+    # TODO: pattern match on the whole {:ok, data} / {:error, errors} idea
+    data_or_errors =
+      operation
+      |> invoke!(
+           schema.resolvers |> Map.get(operation.name),
+           context
+         )
+    %{
+      result_set |
+      data: result_set.data |> Map.update(operation.user_defined_name, data_or_errors, &(&1))
+    }
+  end
+
+  @doc false
+  @spec invoke!(Operation.t, resolver_fun, Map.t):: Map.t | list(Map.t)
+  defp invoke!(operation, resolver, context) do
+    # TODO: probably want to do the error handling here, and return a {:ok, data} or {:error, errors} type of structure
+    # TODO: parent context (i.e. where in the current query tree is this coming from)
+    # TODO: recursively filter to selected fields
+    resolver |> apply([%{}, operation.arguments |> hydrate_arguments(operation.variables), context])
+  end
 
   @doc false
   @spec new_operation(String.t):: Operation.t
@@ -72,11 +112,7 @@ defmodule Graphqexl.Query do
       %{"type" => "query"} |> Map.merge(:query_operation |> Tokens.patterns |> Regex.named_captures(line))
 
     {args, vars} =
-      if ~r/\$#{:field_name |> Tokens.identifiers}:\s?(\"[\w|_]+\"|\d+|true|false|null)/ |> Regex.match?(line) do
-        {nil, arguments}
-      else
-        {arguments, nil}
-      end
+      if arguments |> String.at(1) == :variable |> Tokens.get do {nil, arguments} else {arguments, nil} end
 
     %Operation{
       type: type |> String.to_atom,
@@ -136,9 +172,7 @@ defmodule Graphqexl.Query do
 
   @doc false
   @spec pre_preprocess(gql):: String.t
-  defp pre_preprocess(gql) do
-    gql |> String.trim
-  end
+  defp pre_preprocess(gql), do: gql |> String.trim
 
   @doc false
   @spec preprocess_variables(String.t):: String.t
@@ -151,19 +185,12 @@ defmodule Graphqexl.Query do
   end
 
   @doc false
-  @spec resolve!(t, Schema.t):: ResultSet.t
-  defp resolve!(_query, _schema) do
-    data = %{}
-#      query.operations
-#      |> Enum.reduce(%{}, fn (operation) ->
-#        schema.resolvers |> Map.get(operation.name).(
-#          %{},
-#          query.arguments,
-#          schema.context.(query, %{})
-#        )
-#      end)
-    # TODO: intersect result with query.fields
-    %ResultSet{data: data, errors: %{}}
+  @spec resolve!(t, Schema.t, Map.t):: ResultSet.t
+  defp resolve!(query, schema, context \\ %{}) do
+    query.operations
+    |> Enum.reduce(%ResultSet{}, &(&2 |> insert(&1, schema, context)))
+    |> ResultSet.validate!(schema)
+    |> ResultSet.filter(query.operations |> List.first |> Map.get(:fields))
   end
 
   @doc false
@@ -219,10 +246,18 @@ defmodule Graphqexl.Query do
           0 ->
             %{stack: [], current: nil, operations: operations}
           1 ->
-            new_operations =
-              operations
-              |> stack_push(%{current | fields: stack |> stack_pop |> elem(0) |> Enum.into(%{}) |> Tree.from_map})
-            %{stack: [], current: current, operations: new_operations}
+            %{
+              stack: [],
+              current: current,
+              operations: operations |> stack_push(%{
+                current |
+                fields: stack
+                        |> stack_pop
+                        |> elem(0)
+                        |> Enum.into(%{})
+                        |> Tree.from_map(current.user_defined_name)
+              })
+            }
           _ ->
             {top, rest} = stack |> stack_pop
             {new_top, remaining} = rest |> stack_pop
@@ -288,5 +323,6 @@ defmodule Graphqexl.Query do
   @spec validate!(t, Schema.t):: boolean
   defp validate!(query, schema) do
     true = query.operations |> Enum.all?(&(Validator.valid?(&1, schema)))
+    query
   end
 end

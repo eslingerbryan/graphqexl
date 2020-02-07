@@ -9,7 +9,7 @@ defmodule Graphqexl.Query.Operation do
 
   defstruct(
     arguments: %{},
-    fields: %{},
+    fields: %Tree{},
     name: "",
     user_defined_name: "",
     result: %ResultSet{},
@@ -25,6 +25,6 @@ defmodule Graphqexl.Query.Operation do
       user_defined_name: String.t,
       result: ResultSet.t,
       type: atom,
-      variables: Map.t
+      variables: Map.t,
     }
 end

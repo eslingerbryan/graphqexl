@@ -5,36 +5,12 @@ defmodule Graphqexl.Tokens do
   """
   @moduledoc since: "0.1.0"
 
-  defmodule Regex do
-    @moduledoc"""
-    Utility module with helper functions for working with `t:Regex.t/0`'s.
-    """
-    @moduledoc since: "0.1.0"
-
-    @doc """
-    Escapes the given character or sequence.
-
-    Returns: `t:String.t/0`
-    """
-    @doc since: "0.1.0"
-    @spec escape(String.t):: String.t
-    def escape(char), do: "\\#{char}"
-  end
-
   @identifiers %{
     enum_value: "[_A-Z0-9]+",
     field_name: "[_a-z][_A-Za-z0-9]+",
     name: "[_A-Z][_A-Za-z]+",
     type_value: "\[?[_A-Z][_A-Za-z]+!?\]?",
   }
-  @doc """
-  Retrieve an identifier token by key
-
-  Returns: `t:String.t/0`
-  """
-  @doc since: "0.1.0"
-  @spec identifiers(atom):: String.t
-  def identifiers(key), do: @identifiers |> Map.get(key)
 
   @keywords %{
     enum: "enum",
@@ -47,14 +23,6 @@ defmodule Graphqexl.Tokens do
     type: "type",
     union: "union",
   }
-  @doc """
-  Retrieve a keyword token by key
-
-  Returns: `t:String.t/0`
-  """
-  @doc since: "0.1.0"
-  @spec keywords(atom):: String.t
-  def keywords(key), do: @keywords |> Map.get(key)
 
   @operation_keywords [:enum, :interface, :schema, :type, :union]
   @reserved_types [:mutation, :query, :subscription]
@@ -89,6 +57,23 @@ defmodule Graphqexl.Tokens do
     union_type_delimiter: "|",
     variable: "$",
   }
+
+  defmodule Regex do
+    @moduledoc"""
+    Utility module with helper functions for working with `t:Regex.t/0`'s.
+    """
+    @moduledoc since: "0.1.0"
+
+    @doc """
+    Escapes the given character or sequence.
+
+    Returns: `t:String.t/0`
+    """
+    @doc since: "0.1.0"
+    @spec escape(String.t):: String.t
+    def escape(char), do: "\\#{char}"
+  end
+
   @doc """
   Retrieve a token by key
 
@@ -97,6 +82,24 @@ defmodule Graphqexl.Tokens do
   @doc since: "0.1.0"
   @spec get(atom):: String.t | Map.t
   def get(key), do: @tokens |> Map.get(key)
+
+  @doc """
+  Retrieve an identifier token by key
+
+  Returns: `t:String.t/0`
+  """
+  @doc since: "0.1.0"
+  @spec identifiers(atom):: String.t
+  def identifiers(key), do: @identifiers |> Map.get(key)
+
+  @doc """
+  Retrieve a keyword token by key
+
+  Returns: `t:String.t/0`
+  """
+  @doc since: "0.1.0"
+  @spec keywords(atom):: String.t
+  def keywords(key), do: @keywords |> Map.get(key)
 
   @argument_pattern """
   (#{@identifiers.field_name})#{@tokens.argument_delimiter}\s*?(#{@identifiers.type_value})
