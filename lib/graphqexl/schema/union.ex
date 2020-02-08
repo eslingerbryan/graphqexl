@@ -1,3 +1,4 @@
+alias Graphqexl.Schema
 alias Graphqexl.Schema.{
   Field,
   Ref,
@@ -31,11 +32,11 @@ defmodule Graphqexl.Schema.Union do
   Returns: `[t:Graphqexl.Schema.Field.t/0]`
   """
   @doc since: "0.1.0"
-  @spec fields(t):: list(Field.t)
-  def fields(union) do
+  @spec fields(t, Schema.t):: list(Field.t)
+  def fields(union, schema) do
     union.type1
-      |> Ref.fields
-      |> Enum.concat(union.type2 |> Ref.fields)
-      |> Enum.uniq
+    |> Ref.fields(schema)
+    |> Enum.concat(union.type2 |> Ref.fields(schema))
+    |> Enum.uniq
   end
 end

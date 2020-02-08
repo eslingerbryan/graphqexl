@@ -12,13 +12,13 @@ defmodule Graphqexl.Tokens do
   # https://spec.graphql.org/June2018/#TypeDefinition
 
   @built_in_types %{
-    Boolean: "Boolean",
-    Float: "Float",
-    Id: "Id",
-    Integer: "Integer",
-    List: "List",
-    Object: "Object",
-    String: "String",
+    Boolean: :Boolean,
+    Float: :Float,
+    Id: :Id,
+    Integer: :Integer,
+    List: :List,
+    Object: :Object,
+    String: :String,
   }
   @identifiers %{
     enum_value: "[_A-Z0-9]+",

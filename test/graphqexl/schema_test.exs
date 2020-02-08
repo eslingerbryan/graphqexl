@@ -1,5 +1,3 @@
-alias Treex.Tree
-
 defmodule Graphqexl.Schema.SchemaTest do
   use ExUnit.Case
 
@@ -321,7 +319,7 @@ defmodule Graphqexl.Schema.SchemaTest do
             deprecated: false,
             deprecation_reason: "",
             description: "",
-            fields: %Tree{},
+            fields: %{},
             implements: %Graphqexl.Schema.Ref{type: :String},
             name: :Datetime
           }

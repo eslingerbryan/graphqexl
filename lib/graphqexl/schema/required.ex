@@ -1,3 +1,4 @@
+alias Graphqexl.Schema
 alias Graphqexl.Schema.{
   Field,
   Ref,
@@ -20,6 +21,6 @@ defmodule Graphqexl.Schema.Required do
   Returns: `[t:Graphqexl.Schema.Field.t/0]`
   """
   @doc since: "0.1.0"
-  @spec fields(t) :: list(Field.t)
-  def fields(required), do: required.type |> Ref.fields
+  @spec fields(t, Schema.t) :: list(Field.t)
+  def fields(required, schema), do: required.type |> Ref.fields(schema)
 end
