@@ -1,3 +1,4 @@
+
 defmodule Treex.Tree do
   @moduledoc """
   Primarily a struct for representing tree data to be processed with the `Tree.Traverse` module.
@@ -23,7 +24,6 @@ defmodule Treex.Tree do
   @type slicing_fun :: (start, length -> list(term))
 
   @type t:: %Treex.Tree{value: any, children: [t], key: term}
-
 
   @doc """
   Counts the number of nodes in the given tree.
@@ -90,6 +90,25 @@ defmodule Treex.Tree do
   def from_map(map = %{}, _root) when map |> map_size == 1,
       do: map |> Enum.reduce(%Treex.Tree{}, &node_from_element/2)
   def from_map(map = %{}, root), do: %{root => map} |> from_map(root)
+
+  @doc """
+  Convert the given tree to a `t:Map.t/0`. Optionally, remove the root node by passing
+  `pop_root: true` as a keyword option. This is useful, for example, when the caller knows the given
+  tree has a virtual root.
+  """
+  @doc since: "0.1.0"
+  @spec to_map(t | list(t)):: Map.t
+  @spec to_map(t | list(t), [pop_root: boolean]):: Map.t
+  def to_map(tree, opts \\ [pop_root: false])
+  def to_map(%Treex.Tree{value: nil, children: []}, _), do: %{}
+  def to_map([], [pop_root: false]), do: nil
+  def to_map(trees, [pop_root: false]) when is_list(trees) do
+    trees
+    |> Enum.map(&to_map/1)
+    |> Enum.reduce(%{}, &Map.merge/2)
+  end
+  def to_map(tree, [pop_root: false]), do: %{tree.value => tree.children |> to_map}
+  def to_map(tree, [pop_root: true]), do: tree.children |> to_map
 
   @doc """
   Checks whether the given node is a leaf node or not.

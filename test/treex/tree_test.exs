@@ -53,6 +53,41 @@ defmodule Treex.TreeTest do
     children: [%Tree{value: "value", children: []}],
   }
 
+  @tree %Treex.Tree{
+    value: :foo,
+    children: [
+      %Treex.Tree{value: :bar, children: []},
+      %Treex.Tree{
+        value: :baz,
+        children: [
+          %Treex.Tree{value: :qux, children: []},
+          %Treex.Tree{
+            value: :quux,
+            children: [
+              %Treex.Tree{value: :quuz, children: []},
+              %Treex.Tree{value: :corge, children: []},
+            ],
+          },
+        ],
+      },
+    ],
+  }
+
+  @expected_graph_map %{
+    bar: nil,
+    baz: %{
+      qux: nil,
+      quux: %{
+        quuz: nil,
+        corge: nil,
+      },
+    },
+  }
+
+  @expected_tree_map %{
+    foo: @expected_graph_map
+  }
+
   describe "when the input is an empty map" do
     assert %{} |> Tree.from_map == %Tree{value: :root, children: []}
   end
@@ -84,6 +119,22 @@ defmodule Treex.TreeTest do
   describe "when the input is a graph" do
     test "from_map produces a tree" do
       assert @graph_input |> Tree.from_map == @expected_graph
+    end
+  end
+
+  test "to_map" do
+    assert @tree |> Tree.to_map == @expected_tree_map
+  end
+
+  describe "when the tree is empty" do
+    test "to_map" do
+      assert %Tree{} |> Tree.to_map == %{}
+    end
+  end
+
+  describe "when pop_root is true" do
+    test "to_map" do
+      assert @tree |> Tree.to_map(pop_root: true) == @expected_graph_map
     end
   end
 end
