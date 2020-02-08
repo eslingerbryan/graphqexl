@@ -11,7 +11,9 @@ defmodule Graphqexl.Schema.Ref do
   (that may not yet actually be defined in the run-time context)
   """
   @moduledoc since: "0.1.0"
-  defstruct type: %{}
+
+  @enforce_keys [:type]
+  defstruct [:type]
 
   @type component:: Interface.t | Type.t | Union.t
 

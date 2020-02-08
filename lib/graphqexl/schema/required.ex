@@ -8,7 +8,9 @@ defmodule Graphqexl.Schema.Required do
   Wrapper struct indicating the wrapped type is required on its parent
   """
   @moduledoc since: "0.1.0"
-  defstruct type: %Ref{}
+
+  @enforce_keys [:type]
+  defstruct [:type]
 
   @type t :: %Graphqexl.Schema.Required{type: Ref.t}
 

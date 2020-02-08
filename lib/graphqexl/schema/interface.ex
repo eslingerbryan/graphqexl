@@ -16,15 +16,17 @@ defmodule Graphqexl.Schema.Interface do
     }
   """
   @moduledoc since: "0.1.0"
-  defstruct(
+
+  @enforce_keys [:name, :fields]
+  defstruct [
+    :fields,
+    :name,
     deprecated: false,
     deprecation_reason: "",
     description: "",
     extend: nil,
-    fields: %Tree{},
-    name: "",
     on: []
-  )
+  ]
 
   @type t ::
     %Graphqexl.Schema.Interface{

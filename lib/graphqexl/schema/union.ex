@@ -11,14 +11,9 @@ defmodule Graphqexl.Schema.Union do
     union Content = Comment | Post
   """
   @moduledoc since: "0.1.0"
-  defstruct(
-    deprecated: false,
-    deprecation_reason: "",
-    description: "",
-    name: "",
-    type1: %Ref{},
-    type2: %Ref{}
-  )
+
+  @enforce_keys [:name, :type1, :type2]
+  defstruct [:name, :type1, :type2, deprecated: false, deprecation_reason: "", description: ""]
 
   @type t ::
     %Graphqexl.Schema.Union{

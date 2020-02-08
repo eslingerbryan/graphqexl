@@ -5,13 +5,8 @@ defmodule Graphqexl.Schema.Argument do
   GraphQL argument, belonging to e.g. a Query or Mutation
   """
 
-  defstruct(
-    deprecated: false,
-    deprecation_reason: "",
-    description: "",
-    name: "",
-    type: %Ref{}
-  )
+  @enforce_keys [:name, :type]
+  defstruct [:name, :type, deprecated: false, deprecation_reason: "", description: ""]
 
   @type t ::
     %Graphqexl.Schema.Argument{

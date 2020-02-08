@@ -6,13 +6,9 @@ defmodule Graphqexl.Schema.Field do
   `t:Graphqexl.Schema.Interface.t/0`
   """
   @moduledoc since: "0.1.0"
-  defstruct(
-    deprecated: false,
-    deprecation_reason: "",
-    description: "",
-    name: "",
-    value: %Ref{}
-  )
+
+  @enforce_keys [:name, :value]
+  defstruct [:name, :value, deprecated: false, deprecation_reason: "", description: ""]
 
   @type t ::
     %Graphqexl.Schema.Field{

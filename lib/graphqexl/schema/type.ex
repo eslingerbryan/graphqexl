@@ -17,14 +17,16 @@ defmodule Graphqexl.Schema.Type do
     }
   """
   @moduledoc since: "0.1.0"
-  defstruct(
+
+  @enforce_keys [:name]
+  defstruct [
+    :name,
     deprecated: false,
     deprecation_reason: "",
     description: "",
     fields: %Tree{},
-    implements: nil,
-    name: ""
-  )
+    implements: nil
+  ]
 
   @type t ::
     %Graphqexl.Schema.Type{

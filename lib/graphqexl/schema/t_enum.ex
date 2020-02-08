@@ -10,7 +10,9 @@ defmodule Graphqexl.Schema.TEnum do
     }
   """
   @moduledoc since: "0.1.0"
-  defstruct name: "", values: [], deprecated: false, deprecation_reason: "", description: ""
+
+  @enforce_keys [:name, :values]
+  defstruct [:name, :values, deprecated: false, deprecation_reason: "", description: ""]
 
   @type t ::
     %Graphqexl.Schema.TEnum{

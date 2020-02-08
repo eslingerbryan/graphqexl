@@ -19,6 +19,7 @@ defmodule Graphqexl.Schema do
   parsed from a JSON document or GQL string.
   """
   @moduledoc since: "0.1.0"
+
   defstruct(
     context: nil,
     enums: %{},
