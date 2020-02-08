@@ -5,13 +5,27 @@ defmodule Graphqexl.Tokens do
   """
   @moduledoc since: "0.1.0"
 
+  # TODO: Make the structure here more closely represent the definitions exactly as in the spec:
+  # In particular, the input type handling. This will probably make the DSL much cleaner.
+  # See if we can shake out a consistent interface for parsing the components, maybe without the
+  # need to collapse things into single lines.
+  # https://spec.graphql.org/June2018/#TypeDefinition
+
+  @built_in_types %{
+    Boolean: "Boolean",
+    Float: "Float",
+    Id: "Id",
+    Integer: "Integer",
+    List: "List",
+    Object: "Object",
+    String: "String",
+  }
   @identifiers %{
     enum_value: "[_A-Z0-9]+",
     field_name: "[_a-z][_A-Za-z0-9]+",
     name: "[_A-Z][_A-Za-z]+",
     type_value: "\[?[_A-Z][_A-Za-z]+!?\]?",
   }
-
   @keywords %{
     enum: "enum",
     interface: "interface",
@@ -23,10 +37,12 @@ defmodule Graphqexl.Tokens do
     type: "type",
     union: "union",
   }
-
   @operation_keywords [:enum, :interface, :schema, :type, :union]
   @reserved_types [:mutation, :query, :subscription]
 
+  @scalar_types @built_in_types
+                |> Map.split([:Boolean, :Float, :Id, :Integer, :String])
+                |> elem(0)
   @tokens %{
     argument: %{
       close: ")",
@@ -53,6 +69,7 @@ defmodule Graphqexl.Tokens do
     operation_delimiter: "@",
     required: "!",
     reserved_types: @keywords |> Map.split(@reserved_types) |> elem(0),
+    types: %{scalar: @scalar_types |> Map.values},
     space: "\s",
     union_type_delimiter: "|",
     variable: "$",
