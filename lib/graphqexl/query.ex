@@ -23,7 +23,6 @@ defmodule Graphqexl.Query do
 
   @type gql:: String.t
   @type json:: %{String.t => term}
-  @type resolver_fun:: (Map.t, Map.t, Map.t -> term)
   @type tokenizing_map:: %{stack: list, current: Operation.t, operations: list(Operation.t)}
 
   @type t :: %Graphqexl.Query{operations: list(Operation.t)}
@@ -99,7 +98,7 @@ defmodule Graphqexl.Query do
   end
 
   @doc false
-  @spec invoke!(Operation.t, resolver_fun, Map.t):: Map.t | list(Map.t)
+  @spec invoke!(Operation.t, Resolver.func, Map.t):: Map.t | list(Map.t)
   defp invoke!(operation, resolver, context) do
     # TODO: probably want to do the error handling here, and return a {:ok, data} or {:error, errors} type of structure
     # TODO: parent context (i.e. where in the current query tree is this coming from)
