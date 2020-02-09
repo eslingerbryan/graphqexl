@@ -11,14 +11,16 @@ defmodule Graphqexl.Schema.Query do
     }
   """
   @moduledoc since: "0.1.0"
-  defstruct(
+
+  @enforce_keys [:name, :return]
+  defstruct [
+    :name,
+    :return,
     arguments: [],
     deprecated: false,
     deprecation_reason: "",
-    description: "",
-    name: "",
-    return: %Ref{}
-  )
+    description: ""
+  ]
 
   @type t ::
     %Graphqexl.Schema.Query{

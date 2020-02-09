@@ -7,15 +7,16 @@ defmodule Graphqexl.Query.Operation do
   """
   @moduledoc since: "0.1.0"
 
-  defstruct(
+  @enforce_keys [:fields, :name, :type]
+  defstruct [
+    :fields,
+    :name,
+    :type,
     arguments: %{},
-    fields: %Tree{},
-    name: "",
-    user_defined_name: "",
     result: %ResultSet{},
-    type: :type,
+    user_defined_name: "",
     variables: %{}
-  )
+  ]
 
   @type t::
     %Graphqexl.Query.Operation{

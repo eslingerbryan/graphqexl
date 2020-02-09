@@ -1,8 +1,8 @@
+alias Graphqexl.Schema
 alias Graphqexl.Schema.{
   Field,
   Ref,
 }
-alias Treex.Tree
 
 defmodule Graphqexl.Schema.Interface do
   @moduledoc """
@@ -16,15 +16,17 @@ defmodule Graphqexl.Schema.Interface do
     }
   """
   @moduledoc since: "0.1.0"
-  defstruct(
+
+  @enforce_keys [:name, :fields]
+  defstruct [
+    :fields,
+    :name,
     deprecated: false,
     deprecation_reason: "",
     description: "",
     extend: nil,
-    fields: %Tree{},
-    name: "",
     on: []
-  )
+  ]
 
   @type t ::
     %Graphqexl.Schema.Interface{
@@ -32,7 +34,7 @@ defmodule Graphqexl.Schema.Interface do
       deprecation_reason: String.t,
       description: String.t,
       extend: Ref.t | nil,
-      fields: Tree.t,
+      fields: %{atom => Field.t | [Field.t]},
       name: String.t,
       on: list(Ref.t),
     }
@@ -44,7 +46,11 @@ defmodule Graphqexl.Schema.Interface do
   Returns: `[t:Graphqexl.Schema.Field.t/0]`
   """
   @doc since: "0.1.0"
-  @spec fields(t):: list(Field.t)
+  @spec fields(t, Schema.t):: list(Field.t)
   # TODO: handle extended interfaces
-  def fields(interface), do: interface.fields
+  def fields(interface, _) do
+    interface.fields
+    |> Map.values
+    |> Enum.map(&(if &1 |> is_list do &1 |> List.first else &1 end))
+  end
 end

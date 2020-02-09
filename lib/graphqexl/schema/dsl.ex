@@ -6,7 +6,6 @@ alias Graphqexl.Schema.{
   Mutation,
   Query,
   Ref,
-  Required,
   Subscription,
   TEnum,
   Type,
@@ -113,6 +112,39 @@ defmodule Graphqexl.Schema.Dsl do
            return: return |> parse_field_values
          }
        )
+  end
+
+  @doc """
+  Builds a schema tree from the given spec, using the passed in `t:Graphqexl.Schema.t/0` to
+  extrapolate to scalar leaves.
+
+  Returns: `t:Graphqexl.Schema.t/0`
+  """
+  @doc since: "0.1.0"
+  @spec schema(Schema.t, String.t):: Schema.t
+  def schema(schema, _spec) do
+    # TODO: check the spec string to see which operations are actually defined.
+    # Could also always include children for all three, and have some possibly be empty
+    %{
+      schema |
+      tree: %Tree{
+        value: :schema,
+        children: [
+          %Tree{
+            value: :query,
+            children: schema.queries
+                      |> Map.values
+                      |> Enum.map(&(%Tree{value: &1.name, children: []}))
+          },
+          %Tree{
+            value: :mutation,
+            children: schema.mutations
+                      |> Map.values
+                      |> Enum.map(&(%Tree{value: &1.name, children: []}))
+          }
+        ]
+      }
+    }
   end
 
   @doc """
@@ -256,11 +288,6 @@ defmodule Graphqexl.Schema.Dsl do
   end
 
   @doc false
-  defp maybe_required(ref) do
-    if ref.type |> required? do ref |> required_field_value else ref end
-  end
-
-  @doc false
   defp parse_enum_values(values) do
     values |> Enum.map(&String.to_atom/1)
   end
@@ -274,6 +301,7 @@ defmodule Graphqexl.Schema.Dsl do
         &1 |> List.first |> String.to_atom,
         %Field{
           name: &1 |> List.first |> String.to_atom,
+          required: &1 |> List.last |> required?,
           value: &1 |> List.last |> parse_field_values
         }
       }))
@@ -282,9 +310,11 @@ defmodule Graphqexl.Schema.Dsl do
 
   @doc false
   defp parse_field_values(value) do
-    %Ref{type: value |> String.to_atom}
-    |> maybe_required
-    |> maybe_list
+    %Ref{
+      type: value
+            |> String.replace(:required |> Tokens.get, "")
+            |> String.to_atom
+    } |> maybe_list
   end
 
   @doc false
@@ -297,6 +327,7 @@ defmodule Graphqexl.Schema.Dsl do
         &1 |> List.first |> String.to_atom,
         %Argument{
           name: &1 |> List.first |> String.to_atom,
+          required: &1 |> List.last |> String.contains?(:required |> Tokens.get),
           type: &1 |> List.last |> parse_field_values
         }
       }
@@ -317,19 +348,6 @@ defmodule Graphqexl.Schema.Dsl do
     |> regex_replace(:union_type_separator |> Tokens.patterns, :space |> Tokens.get)
     |> String.replace(:ignored_delimiter |> Tokens.get, "")
   end
-
-  @doc false
-  defp required_field_value(component = %Ref{}) do
-    %Ref{
-      type: %Required{type: :required |> Tokens.get |> atomize_field_value(component.type)}
-    }
-  end
-
-  @doc false
-  defp required?(component = %{type: _}), do: component.type |> required?
-
-  @doc false
-  defp required?(value) when is_atom(value), do: value |> Atom.to_string |> required?
 
   @doc false
   defp required?(value), do: value |> String.contains?(:required |> Tokens.get)

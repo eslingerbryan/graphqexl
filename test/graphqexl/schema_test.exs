@@ -3,6 +3,79 @@ alias Treex.Tree
 defmodule Graphqexl.Schema.SchemaTest do
   use ExUnit.Case
 
+  @mutations %{
+    createPost: %Graphqexl.Schema.Mutation{
+      deprecated: false,
+      deprecation_reason: "",
+      description: "",
+      name: :createPost,
+      return: %Graphqexl.Schema.Ref{type: :Post},
+      arguments: %{
+        authorId: %Graphqexl.Schema.Argument{
+          deprecated: false,
+          deprecation_reason: "",
+          description: "",
+          name: :authorId,
+          required: true,
+          type: %Graphqexl.Schema.Ref{type: :Id}
+        },
+        text: %Graphqexl.Schema.Argument{
+          deprecated: false,
+          deprecation_reason: "",
+          description: "",
+          name: :text,
+          required: true,
+          type: %Graphqexl.Schema.Ref{type: :String}
+        },
+        title: %Graphqexl.Schema.Argument{
+          deprecated: false,
+          deprecation_reason: "",
+          description: "",
+          name: :title,
+          required: false,
+          type: %Graphqexl.Schema.Ref{type: :String}
+        }
+      }
+    }
+  }
+
+  @queries %{
+    getUserComments: %Graphqexl.Schema.Query{
+      deprecated: false,
+      deprecation_reason: "",
+      description: "",
+      arguments: %{
+        userId: %Graphqexl.Schema.Argument{
+          deprecated: false,
+          deprecation_reason: "",
+          description: "",
+          name: :userId,
+          required: true,
+          type: %Graphqexl.Schema.Ref{type: :Id},
+        },
+      },
+      name: :getUserComments,
+      return: [%Graphqexl.Schema.Ref{type: :Comment}]
+    },
+    getPost: %Graphqexl.Schema.Query{
+      deprecated: false,
+      deprecation_reason: "",
+      description: "",
+      arguments: %{
+        id: %Graphqexl.Schema.Argument{
+          deprecated: false,
+          deprecation_reason: "",
+          description: "",
+          name: :id,
+          required: true,
+          type: %Graphqexl.Schema.Ref{type: :Id},
+        },
+      },
+      name: :getPost,
+      return: %Graphqexl.Schema.Ref{type: :Post},
+    },
+  }
+
   test "gql" do
     input =
       """
@@ -63,6 +136,22 @@ defmodule Graphqexl.Schema.SchemaTest do
 
     expected =
       %Graphqexl.Schema{
+        tree: %Tree{
+          value: :schema,
+          children: [
+            %Tree{
+              value: :query,
+              children: [
+                %Tree{value: :getPost, children: []},
+                %Tree{value: :getUserComments, children: []},
+              ]
+            },
+            %Tree{
+              value: :mutation,
+              children: [%Tree{value: :createPost, children: []}]
+            },
+          ]
+        },
         context: nil,
         enums: %{
           Role: %Graphqexl.Schema.TEnum{
@@ -111,80 +200,8 @@ defmodule Graphqexl.Schema.SchemaTest do
             type2: %Graphqexl.Schema.Ref{type: :Post}
           }
         },
-        mutations: %{
-          createPost: %Graphqexl.Schema.Mutation{
-            deprecated: false,
-            deprecation_reason: "",
-            description: "",
-            name: :createPost,
-            return: %Graphqexl.Schema.Ref{type: :Post},
-            arguments: %{
-              authorId: %Graphqexl.Schema.Argument{
-                deprecated: false,
-                deprecation_reason: "",
-                description: "",
-                name: :authorId,
-                type: %Graphqexl.Schema.Ref{
-                  type: %Graphqexl.Schema.Required{type: :Id}
-                }
-              },
-              text: %Graphqexl.Schema.Argument{
-                deprecated: false,
-                deprecation_reason: "",
-                description: "",
-                name: :text,
-                type: %Graphqexl.Schema.Ref{
-                  type: %Graphqexl.Schema.Required{type: :String}
-                }
-              },
-              title: %Graphqexl.Schema.Argument{
-                deprecated: false,
-                deprecation_reason: "",
-                description: "",
-                name: :title,
-                type: %Graphqexl.Schema.Ref{type: :String}
-              }
-            }
-          }
-        },
-        queries: %{
-          getUserComments: %Graphqexl.Schema.Query{
-            deprecated: false,
-            deprecation_reason: "",
-            description: "",
-            arguments: %{
-              userId: %Graphqexl.Schema.Argument{
-                deprecated: false,
-                deprecation_reason: "",
-                description: "",
-                name: :userId,
-                type: %Graphqexl.Schema.Ref{
-                  type: %Graphqexl.Schema.Required{type: :Id}
-                }
-              }
-            },
-            name: :getUserComments,
-            return: [%Graphqexl.Schema.Ref{type: :Comment}]
-          },
-          getPost: %Graphqexl.Schema.Query{
-            deprecated: false,
-            deprecation_reason: "",
-            description: "",
-            arguments: %{
-              id: %Graphqexl.Schema.Argument{
-                deprecated: false,
-                deprecation_reason: "",
-                description: "",
-                name: :id,
-                type: %Graphqexl.Schema.Ref{
-                  type: %Graphqexl.Schema.Required{type: :Id}
-                }
-              }
-            },
-            name: :getPost,
-            return: %Graphqexl.Schema.Ref{type: :Post}
-          }
-        },
+        mutations: @mutations,
+        queries: @queries,
         types: %{
           Post: %Graphqexl.Schema.Type{
             deprecated: false,
@@ -210,9 +227,8 @@ defmodule Graphqexl.Schema.SchemaTest do
                 deprecation_reason: "",
                 description: "",
                 name: :id,
-                value: %Graphqexl.Schema.Ref{
-                  type: %Graphqexl.Schema.Required{type: :Id}
-                }
+                required: true,
+                value: %Graphqexl.Schema.Ref{type: :Id}
               },
               text: %Graphqexl.Schema.Field{
                 deprecated: false,
@@ -243,9 +259,8 @@ defmodule Graphqexl.Schema.SchemaTest do
                 deprecation_reason: "",
                 description: "",
                 name: :id,
-                value: %Graphqexl.Schema.Ref{
-                  type: %Graphqexl.Schema.Required{type: :Id}
-                }
+                required: true,
+                value: %Graphqexl.Schema.Ref{type: :Id}
               },
               author: %Graphqexl.Schema.Field{
                 deprecated: false,
@@ -282,9 +297,8 @@ defmodule Graphqexl.Schema.SchemaTest do
                 deprecation_reason: "",
                 description: "",
                 name: :id,
-                value: %Graphqexl.Schema.Ref{
-                  type: %Graphqexl.Schema.Required{type: :Id}
-                }
+                required: true,
+                value: %Graphqexl.Schema.Ref{type: :Id}
               },
               email: %Graphqexl.Schema.Field{
                 deprecated: false,
@@ -321,7 +335,7 @@ defmodule Graphqexl.Schema.SchemaTest do
             deprecated: false,
             deprecation_reason: "",
             description: "",
-            fields: %Tree{},
+            fields: %{},
             implements: %Graphqexl.Schema.Ref{type: :String},
             name: :Datetime
           }

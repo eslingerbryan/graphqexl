@@ -17,7 +17,9 @@ defmodule Graphqexl.Query do
   (see `Graphqexl.Schema.Dsl`) or `t:Graphqexl.Query.json/0`.
   """
   @moduledoc since: "0.1.0"
-  defstruct operations: []
+
+  @enforce_keys [:operations]
+  defstruct [:operations]
 
   @type gql:: String.t
   @type json:: %{String.t => term}
@@ -115,6 +117,7 @@ defmodule Graphqexl.Query do
       if arguments |> String.at(1) == :variable |> Tokens.get do {nil, arguments} else {arguments, nil} end
 
     %Operation{
+      name: "@TO_BE_SET",
       type: type |> String.to_atom,
       user_defined_name: name |> String.to_atom,
       arguments: args |> tokenize_arguments,
