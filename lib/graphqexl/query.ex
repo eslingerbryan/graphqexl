@@ -3,6 +3,7 @@ alias Graphqexl.Query.{
   ResultSet,
   Validator,
 }
+alias Graphqexl.Schema.Resolver
 alias Graphqexl.{
   Schema,
   Tokens,
@@ -88,7 +89,7 @@ defmodule Graphqexl.Query do
     data_or_errors =
       operation
       |> invoke!(
-           schema.resolvers |> Map.get(operation.name),
+           schema.resolvers |> Resolver.for_operation(operation),
            context
          )
     %{
@@ -98,12 +99,12 @@ defmodule Graphqexl.Query do
   end
 
   @doc false
-  @spec invoke!(Operation.t, Resolver.func, Map.t):: Map.t | list(Map.t)
+  @spec invoke!(Operation.t, Resolver.t, Map.t):: Map.t | list(Map.t)
   defp invoke!(operation, resolver, context) do
     # TODO: probably want to do the error handling here, and return a {:ok, data} or {:error, errors} type of structure
     # TODO: parent context (i.e. where in the current query tree is this coming from)
     # TODO: recursively filter to selected fields
-    resolver |> apply([%{}, operation.arguments |> hydrate_arguments(operation.variables), context])
+    resolver.func |> apply([%{}, operation.arguments |> hydrate_arguments(operation.variables), context])
   end
 
   @doc false
@@ -117,7 +118,7 @@ defmodule Graphqexl.Query do
 
     %Operation{
       name: "@TO_BE_SET",
-      type: type |> String.to_atom,
+      type: type |> String.capitalize |> String.to_atom,
       user_defined_name: name |> String.to_atom,
       arguments: args |> tokenize_arguments,
       fields: %{},

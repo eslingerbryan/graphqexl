@@ -5,6 +5,7 @@ alias Graphqexl.Schema.{
   Interface,
   Mutation,
   Query,
+  Resolver,
   Subscription,
   TEnum,
   Type,
@@ -26,7 +27,7 @@ defmodule Graphqexl.Schema do
     interfaces: %{},
     mutations: %{},
     queries: %{},
-    resolvers: %{},
+    resolvers: %Tree{},
     subscriptions: %{},
     tree: %Tree{},
     types: %{},
@@ -51,7 +52,7 @@ defmodule Graphqexl.Schema do
             interfaces: %{atom => Interface.t},
             mutations: %{atom => Mutation.t},
             queries: %{atom => Query.t},
-            resolvers: %{atom => (Map.t, Map.t, Map.t -> Map.t)},
+            resolvers: Tree.t,
             subscriptions: %{atom => Subscription.t},
             tree: Tree.t,
             types: %{atom => Type.t},
@@ -65,14 +66,15 @@ defmodule Graphqexl.Schema do
   Returns: `t:Graphqexl.Schema.t/0`
   """
   @doc since: "0.1.0"
-  @spec executable(gql, Map.t, Map.t | nil):: t
-  def executable(gql_str, resolvers, context \\ nil) do
-    gql_str
-    |> gql
-    |> validate_resolvers!(resolvers)
-    |> elem(1)
-    |> (&(%{&1 | context: context, resolvers: resolvers})).()
+  @spec executable(gql | t, Map.t, Map.t | nil):: t
+  def executable(gql_str_or_schema, resolvers, context \\ nil)
+  def executable(gql_str, resolvers, context) when is_binary(gql_str) do
+    gql_str |> gql |> executable(resolvers, context)
   end
+  def executable(schema = %Graphqexl.Schema{}, resolvers, context) do
+    %{schema | context: context, resolvers: resolvers |> Resolver.tree_from_map(schema, :schema)}
+  end
+
 
   @doc """
   Parses a `t:Graphqexl.Schema.gql/0` string into a `t:Graphqexl.Schema.t/0`.
@@ -210,29 +212,5 @@ defmodule Graphqexl.Schema do
       )
     end)
     |> Enum.map(&(&1 |> String.split(:space |> Tokens.get)))
-  end
-
-  @doc false
-  @spec validate_resolvers!(t, String.t):: {:ok, t} | {:error, String.t}
-  defp validate_resolver!(schema, name) do
-    if [schema.mutations, schema.queries, schema.subscriptions]
-       |> Enum.any?(&(&1 |> Map.keys |> Enum.member?(name))) do
-      {:ok, schema}
-    else
-      {:error, "No operation matching resolver #{name}"}
-    end
-  end
-
-  @doc false
-  @spec validate_resolvers!(t, Map.t):: {:ok, t} | {:error, String.t}
-  defp validate_resolvers!(schema, resolvers) do
-    if resolvers
-       |> Map.keys
-       |> Enum.all?(&({:ok, _} = schema |> validate_resolver!(&1))) do
-      {:ok, schema}
-    else
-      # TODO: tighten up this error handling
-      {:error, "Invalid resolvers"}
-    end
   end
 end
