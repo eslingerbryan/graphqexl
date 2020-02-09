@@ -40,26 +40,10 @@ defmodule Graphqexl.Query.Validator do
   end
 
   @doc false
-  @spec is_scalar?(Field.t, Schema.t):: boolean
-  defp is_scalar?(field, schema) do
-    cond do
-      schema.enums |> Enum.member?(field) -> true
-      schema.types |> Enum.member?(field) ->
-        schema.types |> Map.get(field) |> Type.is_custom_scalar?(field)
-      schema.unions |> Enum.any?(
-        &(&1.name == field &&
-          (is_scalar?(&1.type1, schema) || is_scalar?(&1.type2, schema)))
-      ) -> true
-    end
-  end
-
-  @doc false
   @spec scalar_leaves?(Query.t, Schema.t):: boolean
   defp scalar_leaves?(query, schema) do
     # TODO: implement
-    query.fields
-    |> Tree.leaves
-    |> Enum.filter(&(!is_scalar?(&1, schema)))
+    true
   end
 
   @doc false

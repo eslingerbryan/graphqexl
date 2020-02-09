@@ -11,7 +11,7 @@ alias Graphqexl.Schema.{
   Union,
 }
 alias Graphqexl.Tokens
-#alias Treex.Traverse
+alias Treex.Tree
 
 defmodule Graphqexl.Schema do
   @moduledoc """
@@ -28,6 +28,7 @@ defmodule Graphqexl.Schema do
     queries: %{},
     resolvers: %{},
     subscriptions: %{},
+    tree: %Tree{},
     types: %{},
     unions: %{}
   )
@@ -52,6 +53,7 @@ defmodule Graphqexl.Schema do
             queries: %{atom => Query.t},
             resolvers: %{atom => (Map.t, Map.t, Map.t -> Map.t)},
             subscriptions: %{atom => Subscription.t},
+            tree: Tree.t,
             types: %{atom => Type.t},
             unions: %{atom => Union.t} ,
           }
@@ -134,7 +136,7 @@ defmodule Graphqexl.Schema do
       :interface -> schema |> Dsl.interface(name, fields_or_values)
       :mutation -> schema |> Dsl.mutation(args)
       :query -> schema |> Dsl.query(args)
-      :schema -> schema
+      :schema -> schema |> Dsl.schema(args)
       :subscription -> schema |> Dsl.subscription(args)
       :type ->
         cond do

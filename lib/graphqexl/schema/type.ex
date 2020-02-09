@@ -3,6 +3,7 @@ alias Graphqexl.Schema.{
   Field,
   Ref,
 }
+alias Treex.Tree
 
 defmodule Graphqexl.Schema.Type do
   @moduledoc """
@@ -64,13 +65,12 @@ defmodule Graphqexl.Schema.Type do
   end
 
   @doc """
-  Checks whether the given `t:Graphqexl.Schema.Field` is a custom scalar type.
+  Checks whether the given `t:Graphqexl.Schema.Type.t/0` is a custom scalar.
 
   Returns: `t:boolean/0`
   """
   @doc since: "0.1.0"
-  @spec is_custom_scalar?(t, atom):: boolean
-  def is_custom_scalar?(type, field) do
-    [:String, :Integer, :Float, :Boolean, :Id] |> type.implements?(field)
-  end
+  @spec scalar?(t, Schema.t):: boolean
+  def scalar?(_ = %Graphqexl.Schema.Type{implements: nil}, _), do: false
+  def scalar?(type, schema), do: type.implements |> Ref.scalar?(schema)
 end

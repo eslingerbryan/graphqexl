@@ -1,5 +1,6 @@
 alias Graphqexl.Schema
 alias Graphqexl.Schema.Ref
+alias Treex.Tree
 
 defmodule Graphqexl.Schema.Field do
   @moduledoc """
@@ -9,7 +10,14 @@ defmodule Graphqexl.Schema.Field do
   @moduledoc since: "0.1.0"
 
   @enforce_keys [:name, :value]
-  defstruct [:name, :value, deprecated: false, deprecation_reason: "", description: ""]
+  defstruct [
+    :name,
+    :value,
+    deprecated: false,
+    deprecation_reason: "",
+    description: "",
+    required: false
+  ]
 
   @type t::
     %Graphqexl.Schema.Field{
@@ -17,6 +25,7 @@ defmodule Graphqexl.Schema.Field do
       deprecation_reason: String.t,
       description: String.t,
       name: String.t,
+      required: boolean,
       value: Ref.t,
     }
 

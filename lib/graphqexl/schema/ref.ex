@@ -63,6 +63,7 @@ defmodule Graphqexl.Schema.Ref do
   def resolve(%Ref{type: :Id}, _), do: :Id
   def resolve(%Ref{type: :Integer}, _), do: :Integer
   def resolve(%Ref{type: :String}, _), do: :String
+  def resolve(ref, schema) when is_list(ref), do: ref |> List.first |> resolve(schema)
   def resolve(ref, schema) do
     object_type = cond do
       schema.enums |> Map.keys |> Enum.member?(ref.type) -> :enums

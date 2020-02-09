@@ -2,7 +2,6 @@ alias Graphqexl.Schema.{
   Field,
   Interface,
   Ref,
-  Required,
   Type,
   TEnum,
   Union,
@@ -87,24 +86,23 @@ defmodule Graphqexl.Schema.RefTest do
             deprecation_reason: "",
             description: "",
             name: :authorId,
-            type: %Graphqexl.Schema.Ref{
-              type: %Graphqexl.Schema.Required{type: :Id}
-            }
+            required: true,
+            type: %Graphqexl.Schema.Ref{type: :Id}
           },
           text: %Graphqexl.Schema.Argument{
             deprecated: false,
             deprecation_reason: "",
             description: "",
             name: :text,
-            type: %Graphqexl.Schema.Ref{
-              type: %Graphqexl.Schema.Required{type: :String}
-            }
+            required: true,
+            type: %Graphqexl.Schema.Ref{type: :String}
           },
           title: %Graphqexl.Schema.Argument{
             deprecated: false,
             deprecation_reason: "",
             description: "",
             name: :title,
+            required: false,
             type: %Graphqexl.Schema.Ref{type: :String}
           }
         }
@@ -121,9 +119,8 @@ defmodule Graphqexl.Schema.RefTest do
             deprecation_reason: "",
             description: "",
             name: :userId,
-            type: %Graphqexl.Schema.Ref{
-              type: %Graphqexl.Schema.Required{type: :Id}
-            }
+            required: true,
+            type: %Graphqexl.Schema.Ref{type: :Id}
           }
         },
         name: :getUserComments,
@@ -139,9 +136,8 @@ defmodule Graphqexl.Schema.RefTest do
             deprecation_reason: "",
             description: "",
             name: :id,
-            type: %Graphqexl.Schema.Ref{
-              type: %Graphqexl.Schema.Required{type: :Id}
-            }
+            required: true,
+            type: %Graphqexl.Schema.Ref{type: :Id}
           }
         },
         name: :getPost,
@@ -159,6 +155,7 @@ defmodule Graphqexl.Schema.RefTest do
             deprecation_reason: "",
             description: "",
             name: :author,
+            required: false,
             value: %Graphqexl.Schema.Ref{type: :User}
           },
           comments: %Graphqexl.Schema.Field{
@@ -166,6 +163,7 @@ defmodule Graphqexl.Schema.RefTest do
             deprecation_reason: "",
             description: "",
             name: :comments,
+            required: false,
             value: [%Graphqexl.Schema.Ref{type: :Comment}]
           },
           id: %Graphqexl.Schema.Field{
@@ -173,15 +171,15 @@ defmodule Graphqexl.Schema.RefTest do
             deprecation_reason: "",
             description: "",
             name: :id,
-            value: %Graphqexl.Schema.Ref{
-              type: %Graphqexl.Schema.Required{type: :Id}
-            }
+            required: true,
+            value: %Graphqexl.Schema.Ref{type: :Id}
           },
           text: %Graphqexl.Schema.Field{
             deprecated: false,
             deprecation_reason: "",
             description: "",
             name: :text,
+            required: false,
             value: %Graphqexl.Schema.Ref{type: :String}
           },
           title: %Graphqexl.Schema.Field{
@@ -189,6 +187,7 @@ defmodule Graphqexl.Schema.RefTest do
             deprecation_reason: "",
             description: "",
             name: :title,
+            required: false,
             value: %Graphqexl.Schema.Ref{type: :String}
           }
         },
@@ -206,15 +205,15 @@ defmodule Graphqexl.Schema.RefTest do
             deprecation_reason: "",
             description: "",
             name: :id,
-            value: %Graphqexl.Schema.Ref{
-              type: %Graphqexl.Schema.Required{type: :Id}
-            }
+            required: true,
+            value: %Graphqexl.Schema.Ref{type: :Id}
           },
           author: %Graphqexl.Schema.Field{
             deprecated: false,
             deprecation_reason: "",
             description: "",
             name: :author,
+            required: false,
             value: %Graphqexl.Schema.Ref{type: :User}
           },
           parent: %Graphqexl.Schema.Field{
@@ -222,6 +221,7 @@ defmodule Graphqexl.Schema.RefTest do
             deprecation_reason: "",
             description: "",
             name: :parent,
+            required: false,
             value: %Graphqexl.Schema.Ref{type: :Content}
           },
           text: %Graphqexl.Schema.Field{
@@ -229,6 +229,7 @@ defmodule Graphqexl.Schema.RefTest do
             deprecation_reason: "",
             description: "",
             name: :text,
+            required: false,
             value: %Graphqexl.Schema.Ref{type: :String}
           }
         },
@@ -245,15 +246,15 @@ defmodule Graphqexl.Schema.RefTest do
             deprecation_reason: "",
             description: "",
             name: :id,
-            value: %Graphqexl.Schema.Ref{
-              type: %Graphqexl.Schema.Required{type: :Id}
-            }
+            required: true,
+            value: %Graphqexl.Schema.Ref{type: :Id}
           },
           email: %Graphqexl.Schema.Field{
             deprecated: false,
             deprecation_reason: "",
             description: "",
             name: :email,
+            required: false,
             value: %Graphqexl.Schema.Ref{type: :String}
           },
           firstName: %Graphqexl.Schema.Field{
@@ -261,6 +262,7 @@ defmodule Graphqexl.Schema.RefTest do
             deprecation_reason: "",
             description: "",
             name: :firstName,
+            required: false,
             value: %Graphqexl.Schema.Ref{type: :String}
           },
           lastName: %Graphqexl.Schema.Field{
@@ -268,6 +270,7 @@ defmodule Graphqexl.Schema.RefTest do
             deprecation_reason: "",
             description: "",
             name: :lastName,
+            required: false,
             value: %Graphqexl.Schema.Ref{type: :String}
           },
           role: %Graphqexl.Schema.Field{
@@ -275,6 +278,7 @@ defmodule Graphqexl.Schema.RefTest do
             deprecation_reason: "",
             description: "",
             name: :role,
+            required: false,
             value: %Graphqexl.Schema.Ref{type: :Role}
           },
           comments: [%Graphqexl.Schema.Field{
@@ -282,6 +286,7 @@ defmodule Graphqexl.Schema.RefTest do
             deprecation_reason: "",
             description: "",
             name: :comments,
+            required: false,
             value: %Graphqexl.Schema.Ref{type: :Comment}
           }]
         },
@@ -297,6 +302,7 @@ defmodule Graphqexl.Schema.RefTest do
             deprecation_reason: "",
             description: "",
             name: :fromA,
+            required: false,
             value: :String
           },
         },
@@ -312,6 +318,7 @@ defmodule Graphqexl.Schema.RefTest do
             deprecation_reason: "",
             description: "",
             name: :fromB,
+            required: false,
             value: :String
           },
         },
@@ -401,7 +408,7 @@ defmodule Graphqexl.Schema.RefTest do
         %Field{name: :comments, value: %Ref{type: :Comment}},
         %Field{name: :email, value: %Ref{type: :String}},
         %Field{name: :firstName, value: %Ref{type: :String}},
-        %Field{name: :id, value: %Ref{type: %Required{type: :Id}}},
+        %Field{name: :id, required: true, value: %Ref{type: :Id}},
         %Field{name: :lastName, value: %Ref{type: :String}},
         %Field{name: :role, value: %Ref{type: :Role}},
       ]
@@ -413,7 +420,6 @@ defmodule Graphqexl.Schema.RefTest do
     end
 
     test "scalar?" do
-      # TODO: register Type called User
       assert %Ref{type: :User} |> Ref.scalar?(@schema) == false
     end
   end

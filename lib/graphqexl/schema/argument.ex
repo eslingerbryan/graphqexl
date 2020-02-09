@@ -6,7 +6,14 @@ defmodule Graphqexl.Schema.Argument do
   """
 
   @enforce_keys [:name, :type]
-  defstruct [:name, :type, deprecated: false, deprecation_reason: "", description: ""]
+  defstruct [
+    :name,
+    :type,
+    deprecated: false,
+    deprecation_reason: "",
+    description: "",
+    required: false
+  ]
 
   @type t ::
     %Graphqexl.Schema.Argument{
@@ -14,6 +21,7 @@ defmodule Graphqexl.Schema.Argument do
       deprecation_reason: String.t,
       description: String.t,
       name: String.t,
+      required: boolean,
       type: Ref.t
     }
 end
