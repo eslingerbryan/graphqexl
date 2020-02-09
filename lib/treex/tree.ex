@@ -1,3 +1,4 @@
+alias Treex.Traverse
 
 defmodule Treex.Tree do
   @moduledoc """
@@ -28,11 +29,41 @@ defmodule Treex.Tree do
   @doc """
   Counts the number of nodes in the given tree.
 
-  Returns: `t:integer`
+  Returns:
+    `{:ok, t:integer/0}` - when successful
+    `{:error, t:module/0}` - when there's an error traversing the tree
   """
   @doc since: "0.1.0"
   @spec count(t):: {:ok, size} | {:error, module}
-  def count(_tree), do: 42
+  def count(tree) do
+    tree
+    |> Traverse.traverse(&count_traverse/2, :dfs)
+    |> List.first
+  end
+
+  defp count_traverse(%Treex.Tree{value: nil, children: []}, _), do: {:continue, 0}
+  defp count_traverse(_, []), do: {:continue, 1}
+  defp count_traverse(_, history) do
+    {:continue, (history |> List.first) + 1}
+  end
+
+  @doc """
+  Check whether the `t:Treex.Tree.t/0` has any non-nil nodes.
+
+  Returns: `t:boolean/0`
+  """
+  @doc since: "0.1.0"
+  @spec any?(t):: boolean
+  def any?(tree), do: !(tree |> empty?)
+
+  @doc """
+  Check whether the `t:Treex.Tree.t/0` is empty.
+
+  Returns: `t:boolean/0`
+  """
+  @doc since: "0.1.0"
+  @spec empty?(t):: boolean
+  def empty?(tree), do: tree |> count == 0
 
   @doc """
   Checks whether the given element is a member of the tree at any depth, performed breadth-first.

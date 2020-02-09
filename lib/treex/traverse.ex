@@ -52,7 +52,7 @@ defmodule Treex.Traverse do
     arity = :erlang.fun_info(operation)[:arity]
 
     if arity != 2 do
-      raise "Function #{operation |> inspect} has invalid arity. Expected 3, got #{arity}."
+      raise "Function #{operation |> inspect} has invalid arity. Expected 2, got #{arity}."
     else
       operation.(node, history)
     end
