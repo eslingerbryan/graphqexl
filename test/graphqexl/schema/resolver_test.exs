@@ -326,5 +326,36 @@ defmodule Graphqexl.Schema.ResolverTest do
   end
 
   test "tree_from_map" do
+    func = fn(_, _, _) -> :resolved!  end
+
+    input = %{
+      Mutation: %{
+        createPost: func,
+      },
+      Query: %{
+        getPost: func,
+        getUserComments: func,
+      }
+    }
+
+    expected = %Tree{
+      value: :schema,
+      children: [
+        %Tree{
+          value: :Mutation,
+          children: [
+            %Tree{value: %Resolver{for: :createPost, func: func}, children: []}
+          ]
+        },
+        %Tree{
+          value: :Query,
+          children: [
+            %Tree{value: %Resolver{for: :getPost, func: func}, children: []},
+            %Tree{value: %Resolver{for: :getUserComments, func: func}, children: []}
+          ]
+        }
+      ]
+    }
+    assert input |> Resolver.tree_from_map(@schema, :schema) == expected
   end
 end
