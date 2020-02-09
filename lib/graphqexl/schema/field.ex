@@ -1,6 +1,5 @@
 alias Graphqexl.Schema
 alias Graphqexl.Schema.Ref
-alias Treex.Tree
 
 defmodule Graphqexl.Schema.Field do
   @moduledoc """

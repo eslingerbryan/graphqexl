@@ -1,7 +1,4 @@
-alias Treex.{
-  Traverse,
-  Tree,
-}
+alias Treex.Tree
 
 defmodule Treex.Intersection do
   @moduledoc """
@@ -17,7 +14,8 @@ defmodule Treex.Intersection do
   """
   @doc since: "0.1.0"
   @spec exists?(Tree.t, Tree.t):: boolean
-  def exists?(tree, other), do: false
+  # TODO: implement
+  def exists?(tree, other), do: tree |> intersection(other) |> Tree.any?
 
   @doc """
   Compute the intersection between the given `t:Treex.Tree.t/0` and the `other` `t:Treex.Tree.t/0`.

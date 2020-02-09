@@ -2,11 +2,6 @@ alias Graphqexl.{
   Query,
   Schema,
 }
-alias Graphqexl.Schema.{
-  Field,
-  Type,
-}
-alias Treex.Tree
 
 defmodule Graphqexl.Query.Validator do
   @moduledoc """
@@ -41,7 +36,7 @@ defmodule Graphqexl.Query.Validator do
 
   @doc false
   @spec scalar_leaves?(Query.t, Schema.t):: boolean
-  defp scalar_leaves?(query, schema) do
+  defp scalar_leaves?(_query, _schema) do
     # TODO: implement
     true
   end

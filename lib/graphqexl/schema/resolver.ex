@@ -1,9 +1,6 @@
+alias Graphqexl.Query.Operation
 alias Graphqexl.Schema
-alias Graphqexl.Schema.Ref
-alias Treex.{
-  Traverse,
-  Tree,
-}
+alias Treex.Tree
 
 defmodule Graphqexl.Schema.Resolver do
   @moduledoc """
@@ -37,7 +34,8 @@ defmodule Graphqexl.Schema.Resolver do
   """
   @doc since: "0.1.0"
   @spec validate!(Tree.t, Schema.t):: {:ok, t} | {:error, String.t}
-  def validate!(resolvers, schema) do
+  def validate!(resolvers, _schema) do
+    # TODO: implement
 #    %Tree{value: :schema} = resolvers |> Tree.Intersection.with(schema)
     resolvers
   end
