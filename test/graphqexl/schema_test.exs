@@ -305,6 +305,9 @@ defmodule Graphqexl.SchemaTest do
       Mutation: %{
         createPost: func,
       },
+      Post: %{
+        comments: func
+      }
     }
 
     expected = %{
@@ -316,6 +319,12 @@ defmodule Graphqexl.SchemaTest do
             value: :Mutation,
             children: [
               %Tree{value: %Resolver{for: :createPost, func: func}, children: []}
+            ]
+          },
+          %Tree{
+            value: :Post,
+            children: [
+              %Tree{value: %Resolver{for: :comments, func: func}, children: []}
             ]
           },
           %Tree{
@@ -393,31 +402,3 @@ defmodule Graphqexl.SchemaTest do
     assert Graphqexl.Schema.gql(input) == @schema
   end
 end
-
-%Treex.Tree{
-  key: nil,
-  value: :schema,
-  children: [
-    %Treex.Tree{
-      key: nil,
-      children: [],
-      value: %Graphqexl.Schema.Resolver{
-        for: :Mutation,
-        func: %{
-          createPost: "#Function<0.3090117/3 in Graphqexl.SchemaTest.\"test executable\"/1>"
-        }
-      }
-    },
-    %Treex.Tree{
-      key: nil,
-      children: [],
-      value: %Graphqexl.Schema.Resolver{
-        for: :Query,
-        func: %{
-          getPost: "#Function<0.3090117/3 in Graphqexl.SchemaTest.\"test executable\"/1>",
-          getUserComments: "#Function<0.3090117/3 in Graphqexl.SchemaTest.\"test executable\"/1>"
-        }
-      }
-    }
-  ]
-}
