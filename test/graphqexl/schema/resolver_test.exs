@@ -295,6 +295,51 @@ defmodule Graphqexl.Schema.ResolverTest do
     }
   }
 
+  test "merge" do
+    func1 = fn(_, _, _) -> :resolved! end
+    func2 = fn(_, _, _) -> :double_resolved! end
+
+    resolvers = %{
+      schema: %{
+        Mutation: %{
+          createPost: %{
+            comments: func1
+          }
+        },
+        Query: %{
+          getPost: func1,
+        }
+      }
+    }
+
+    other = %{
+      schema: %{
+        Mutation: %{
+          createPost: func2
+        },
+        Query: %{
+          getPost: func2,
+          getUserComments: func2,
+        }
+      }
+    }
+
+    expected = %{
+      schema: %{
+        Mutation: %{
+          createPost: %{
+            comments: func1
+          },
+        },
+        Query: %{
+          getPost: func1,
+          getUserComments: func2,
+        }
+      }
+    }
+
+    assert resolvers |> Resolver.merge(other) == expected
+  end
 
   describe "when validating a tree of valid resolvers" do
     test "validate!" do

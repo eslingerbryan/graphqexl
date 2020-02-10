@@ -1,10 +1,15 @@
 alias Graphqexl.Query.Operation
 alias Graphqexl.Schema
+alias Graphqexl.Schema.{
+  Field,
+  Resolver,
+}
 alias Treex.Tree
 
 defmodule Graphqexl.Schema.Resolver do
   @moduledoc """
-  Encapsulates a GraphQL resolver function tied to a field or a type.
+  Encapsulates a GraphQL `t:Graphqexl.Schema.Resolver.func/0` tied to a
+  `t:Graphqexl.Schema.Field.t/0` or a `t:Graphqexl.Schema.Type.t/0`.
   """
   @moduledoc since: "0.1.0"
 
@@ -12,8 +17,22 @@ defmodule Graphqexl.Schema.Resolver do
   defstruct [:for, :func]
 
   @type func:: (Map.t, Map.t, Map.t -> term)
+  @type resolver_map:: %{atom => atom | %{atom => atom | %{atom => func}}}
 
   @type t:: %Graphqexl.Schema.Resolver{for: atom, func: func}
+
+  @doc """
+  Build a default `t:Graphqexl.Schema.Resolver.t/0` for the given `t:Graphqexl.Schema.Field.t/0` or
+  field name. The default resolver looks for an attribute with the given field name on the `parent`
+  struct, which will be the result of the resolver function invoked on the field's parent type.
+
+  Returns: `t:Graphqexl.Schema.Resolver.t/0`
+  """
+  @doc since: "0.1.0"
+  @spec default_for(Field.t | atom):: t
+  def default_for(field = %Field{}), do: field.name |> default_for
+  def default_for(field),
+      do: %Resolver{for: field, func: fn(parent, _, _) -> parent |> Map.get(field) end}
 
   @doc """
   Retrieve the `t:Graphqexl.Schema.Resolver.t/0` from the given `t:Treex.Tree.t/0` that corresponds
@@ -31,6 +50,45 @@ defmodule Graphqexl.Schema.Resolver do
     |> Enum.filter(&(&1.value.for == operation.name))
     |> List.first
     |> Map.get(:value)
+  end
+
+  @doc"""
+  Merge two resolver `t:Map.t/0`s, with precedence going from left to right. That is, if
+  `resolvers` and `other` both contain the same keys with different values, `tree` will take
+  precedence.
+
+  Returns: `t:Treex.Tree.t/0`
+  """
+  @doc since: "0.1.0"
+  @spec merge(resolver_map, resolver_map):: resolver_map
+  def merge(resolvers, other) when other |> map_size == 0, do: resolvers
+  def merge(resolvers, other) when resolvers |> map_size == 0, do: other
+  def merge(resolvers, other) do
+    other
+    |> Enum.reduce(
+         resolvers
+         |> Enum.reduce(
+              %{},
+              fn({key, value}, acc) ->
+                if value |> is_map && other |> Map.get(key) |> is_map do
+                  acc |> Map.update(key, value |> merge(other |> Map.get(key)), &(&1))
+                else
+                  acc |> Map.update(key, value, &(&1))
+                end
+              end
+            ),
+         fn({key, value}, res) ->
+           if res |> Enum.member?(key) do
+             if value |> is_map && res |> Map.get(key) |> is_map do
+               res |> Map.get(key) |> merge(value)
+             else
+               res
+             end
+           else
+             res |> Map.update(key, value, &(&1))
+           end
+         end
+       )
   end
 
   @doc """
