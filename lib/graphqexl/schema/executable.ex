@@ -96,9 +96,13 @@ defmodule Graphqexl.Schema.Executable do
   @doc false
   defp schema(gql) do
     gql |> Schema.executable(%{
-      createPost: &create_post/3,
-      getPost: &get_post/3,
-      getUserComments: &get_user_comments/3,
+      Query: %{
+        getPost: &get_post/3,
+        getUserComments: &get_user_comments/3,
+      },
+      Mutation: %{
+        createPost: &create_post/3,
+      },
     })
   end
 

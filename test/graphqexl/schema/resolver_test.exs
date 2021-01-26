@@ -12,7 +12,7 @@ alias Graphqexl.Schema.{
 }
 alias Treex.Tree
 
-defmodule Graphqexl.SchemaTest do
+defmodule Graphqexl.Schema.ResolverTest do
   use ExUnit.Case
 
   @mutations %{
@@ -295,110 +295,112 @@ defmodule Graphqexl.SchemaTest do
     }
   }
 
-  test "executable" do
-    func = fn(_parent, _args, _context) -> :resolved! end
+  test "merge" do
+    func1 = fn(_, _, _) -> :resolved! end
+    func2 = fn(_, _, _) -> :double_resolved! end
+
     resolvers = %{
-      Query: %{
-        getPost: func,
-        getUserComments: func,
-      },
-      Mutation: %{
-        createPost: func,
-      },
-      Post: %{
-        comments: func
+      schema: %{
+        Mutation: %{
+          createPost: %{
+            comments: func1
+          }
+        },
+        Query: %{
+          getPost: func1,
+        }
+      }
+    }
+
+    other = %{
+      schema: %{
+        Mutation: %{
+          createPost: func2
+        },
+        Query: %{
+          getPost: func2,
+          getUserComments: func2,
+        }
       }
     }
 
     expected = %{
-      @schema |
-      resolvers: %Tree{
-        value: :schema,
-        children: [
-          %Tree{
-            value: :Mutation,
-            children: [
-              %Tree{value: %Resolver{for: :createPost, func: func}, children: []}
-            ]
+      schema: %{
+        Mutation: %{
+          createPost: %{
+            comments: func1
           },
-          %Tree{
-            value: :Post,
-            children: [
-              %Tree{value: %Resolver{for: :comments, func: func}, children: []}
-            ]
-          },
-          %Tree{
-            value: :Query,
-            children: [
-              %Tree{value: %Resolver{for: :getPost, func: func}, children: []},
-              %Tree{value: %Resolver{for: :getUserComments, func: func}, children: []},
-            ]
-          },
-        ]
+        },
+        Query: %{
+          getPost: func1,
+          getUserComments: func2,
+        }
       }
     }
 
-    assert (@schema |> Schema.executable(resolvers)).resolvers == expected.resolvers
+    assert resolvers |> Resolver.merge(other) == expected
   end
 
-  test "gql" do
-    input =
-      """
-      # comments don't count
-
-      interface Timestamped {
-        createdAt: Datetime
-        updatedAt: Datetime
+  describe "when validating a tree of valid resolvers" do
+    test "validate!" do
+      func = fn(_, _, _) -> :resolved! end
+      input = %Tree{
+        value: :schema,
+        children: [
+          %Tree{
+            value: :Query,
+            children: [
+              %Tree{value: %Resolver{for: :getUserComments, func: func}, children: []},
+              %Tree{value: %Resolver{for: :getPost, func: func}, children: []},
+            ]
+          },
+          %Tree{
+            value: :Mutation,
+            children: [%Tree{value: %Resolver{for: :createPost, func: func}}]
+          }
+        ]
       }
 
-      type Datetime = String
+      assert input |> Resolver.validate!(@schema) == input
+    end
+  end
 
-      type User implements Timestamped {
-        id: Id!
-        firstName: String
-        lastName: String
-        email: String
-        role: Role
+  describe "when validating a tree of invalid resolvers" do
+    test "validate!" do
+    end
+  end
+
+  test "tree_from_map" do
+    func = fn(_, _, _) -> :resolved!  end
+
+    input = %{
+      Mutation: %{
+        createPost: func,
+      },
+      Query: %{
+        getPost: func,
+        getUserComments: func,
       }
+    }
 
-      type Comment implements Timestamped {
-        id: Id!
-        author: User
-        parent: Content
-        text: String
-      }
-
-      type Post implements Timestamped {
-        id: Id!
-        text: String
-        title: String
-        author: User
-        comments: [Comment]
-      }
-
-      union Content = Comment | Post
-
-      enum Role {
-        AUTHOR,
-        EDITOR,
-        ADMIN,
-      }
-
-      type Query {
-        getPost(id: Id!): Post
-        getUserComments(userId: Id!): [Comment]
-      }
-
-      type Mutation {
-        createPost(title: String, text: String!, authorId: Id!): Post
-      }
-
-      schema {
-        query: Query
-        mutation: Mutation
-      }
-      """
-
-    assert Graphqexl.Schema.gql(input) == @schema
+    expected = %Tree{
+      value: :schema,
+      children: [
+        %Tree{
+          value: :Mutation,
+          children: [
+            %Tree{value: %Resolver{for: :createPost, func: func}, children: []}
+          ]
+        },
+        %Tree{
+          value: :Query,
+          children: [
+            %Tree{value: %Resolver{for: :getPost, func: func}, children: []},
+            %Tree{value: %Resolver{for: :getUserComments, func: func}, children: []}
+          ]
+        }
+      ]
+    }
+    assert input |> Resolver.tree_from_map(@schema, :schema) == expected
   end
 end

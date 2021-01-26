@@ -3,7 +3,6 @@ alias Graphqexl.Schema.{
   Field,
   Ref,
 }
-alias Treex.Tree
 
 defmodule Graphqexl.Schema.Type do
   @moduledoc """

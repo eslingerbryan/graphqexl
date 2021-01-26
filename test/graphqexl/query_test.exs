@@ -88,7 +88,7 @@ defmodule Graphqexl.QueryTest do
             },
           ],
         },
-        type: :query,
+        type: :Query,
         user_defined_name: :getSinglePost,
         variables: %{
           postId: "#{@post_id}",
@@ -112,9 +112,13 @@ defmodule Graphqexl.QueryTest do
   end
 
   @resolvers %{
-    createPost: &Graphqexl.QueryTest.Resolvers.create_post/3,
-    getPost: &Graphqexl.QueryTest.Resolvers.get_post/3,
-    getUserComments: &Graphqexl.QueryTest.Resolvers.get_user_comments/3,
+    Query: %{
+      getPost: &Graphqexl.QueryTest.Resolvers.get_post/3,
+      getUserComments: &Graphqexl.QueryTest.Resolvers.get_user_comments/3,
+    },
+    Mutation: %{
+      createPost: &Graphqexl.QueryTest.Resolvers.create_post/3,
+    }
   }
 
   @schema """

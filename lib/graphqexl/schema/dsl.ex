@@ -131,13 +131,13 @@ defmodule Graphqexl.Schema.Dsl do
         value: :schema,
         children: [
           %Tree{
-            value: :query,
+            value: :Query,
             children: schema.queries
                       |> Map.values
                       |> Enum.map(&(%Tree{value: &1.name, children: []}))
           },
           %Tree{
-            value: :mutation,
+            value: :Mutation,
             children: schema.mutations
                       |> Map.values
                       |> Enum.map(&(%Tree{value: &1.name, children: []}))
