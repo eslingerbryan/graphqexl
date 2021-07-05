@@ -22,3 +22,11 @@ erl_crash.dump
 # Ignore package tarball (built via "mix hex.build").
 graphqexl-*.tar
 
+mix.lock
+yarn-error.log
+node_modules/
+.cache/
+dist/
+
+*.gql
+!lib/graphqexl/utils/schema.gql

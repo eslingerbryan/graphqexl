@@ -1,0 +1,34 @@
+{
+  "name": "graphqexl-playground",
+  "version": "0.1.0-alpha",
+  "main": "index.js",
+  "repository": "git@github.com:eslingerbryan/graphqexl.git",
+  "author": "Bryan Eslinger <eslinger.bryan@gmail.com>",
+  "license": "MIT",
+  "private": false,
+  "scripts": {
+    "build": "parcel build playground/src/index.html",
+    "dev": "parcel playground/src/index.html",
+    "lint:check": "eslint . --ext=js,jsx;  exit 0",
+    "lint:fix": "eslint . --ext=js,jsx --fix;  exit 0",
+    "watch": "parcel watch playground/src/index.html"
+  },
+  "dependencies": {
+    "@material-ui/core": "^4.9.0",
+    "@material-ui/icons": "^4.5.1",
+    "clsx": "^1.0.4",
+    "graphql-syntax-highlighter-react": "^0.4.0",
+    "import": "^0.0.6",
+    "parcel": "^1.12.4",
+    "prop-types": "^15.7.2",
+    "react": "^15.3.1 || ^16.0.0",
+    "react-dom": "^16.12.0"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.0.0-0",
+    "@babel/preset-react": "^7.8.3",
+    "@iconify/icons-simple-icons": "^1.0.21",
+    "@iconify/react": "^1.1.1",
+    "babel-plugin-transform-class-properties": "^6.24.1"
+  }
+}

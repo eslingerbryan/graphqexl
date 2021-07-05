@@ -1,24 +1,41 @@
 defmodule Graphqexl.MixProject do
   use Mix.Project
 
-  @version '0.1.0'
+  @version "VERSION" |> File.read! |> String.trim
 
   def project do
     [
       app: :graphqexl,
-      version: @version |> to_string,
+      version: @version,
+      docs: docs(),
       elixir: "~> 1.9",
       elixirc_paths: elixirc_paths(Mix.env()),
-      compilers: [:phoenix, :gettext] ++ Mix.compilers(),
+      compilers: [:gettext] ++ Mix.compilers(),
       start_permanent: Mix.env() == :prod,
       aliases: aliases(),
       deps: deps(),
       releases: [
         stable: [
           include_executables_for: [:unix],
-          applications: [graphqexl: :permanent, runtime_tools: :permanent],
+          applications: [graphqexl: :permanent],
         ],
       ],
+      description: "Fully-loaded, pure-Elixir GraphQL server implementation with developer tools",
+      package: %{
+        files: [
+          "config",
+          "lib",
+          "priv",
+          "mix.exs",
+          "README*",
+          "LICENSE*"
+        ],
+        licenses: ["MIT"],
+        links: %{
+          github: "https://github.com/eslingerbryan/graphqexl",
+          graphql: "https://graphql.org/"
+        }
+      },
     ]
   end
 
@@ -29,8 +46,8 @@ defmodule Graphqexl.MixProject do
     [
       description: 'Fully-loaded, pure-Elixir GraphQL server implementation with developer tools',
       mod: {Graphqexl.Application, []},
-      extra_applications: [:logger, :runtime_tools],
-      vsn: @version,
+      extra_applications: [:logger],
+      vsn: @version |> to_charlist,
     ]
   end
 
@@ -40,16 +57,38 @@ defmodule Graphqexl.MixProject do
   # Run "mix help deps" to learn about dependencies.
   defp deps do
     [
-      {:authex, "~> 2.0"},
-      {:credo, "~> 1.1.0", only: [:dev, :test], runtime: false},
+      {:cowboy, ">= 0.0.0"},
+      {:credo, "~> 1.1.0", only: :dev, runtime: false},
+      {:ex_doc, ">= 0.0.0", only: :dev, runtime: false},
       {:gettext, "~> 0.11"},
-      {:inflex, "~> 2.0.0"},
       {:jason, "~> 1.0"},
-      {:phoenix, "~> 1.4.11"},
-      {:phoenix_html, "~> 2.11"},
-      {:phoenix_live_reload, "~> 1.2", only: :dev},
-      {:phoenix_pubsub, "~> 1.1"},
-      {:plug_cowboy, "~> 2.0"},
+      {:plug, ">= 0.0.0"},
+      {:plug_cowboy, ">= 0.0.0"},
+    ]
+  end
+
+  defp docs do
+    [
+      main: "overview",
+      formatters: ["html", "epub"],
+      extras: extras(),
+      groups_for_extras: groups_for_extras()
+    ]
+  end
+
+  defp extras do
+    [
+      "guides/Overview.md",
+      "guides/Schema.md",
+      "examples/Basic.md",
+      "examples/SOA Orchestration.md",
+    ]
+  end
+
+  defp groups_for_extras do
+    [
+      "Guides": ~r/guides\/[^\/]+\.md/,
+      "Examples": ~r/examples\/[^\/]+\.md/,
     ]
   end
 

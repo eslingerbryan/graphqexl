@@ -1,30 +1,25 @@
-defmodule Graphqexl.Application do
-  # See https://hexdocs.pm/elixir/Application.html
-  # for more information on OTP Applications
-  @moduledoc false
+alias Graphqexl.Server.Router
 
+defmodule Graphqexl.Application do
+  @moduledoc false
+  require Logger
   use Application
 
+  @type on_start:: {:ok, pid} | {:error, {:already_started, pid} | {:shutdown, term} | term}
+
+  @doc false
+  @spec start(term, list(term)):: on_start
   def start(_type, _args) do
-    # List all child processes to be supervised
+    Logger.info("Starting server at http://localhost:4000")
     children = [
-      # Start the endpoint when the application starts
-      #      Graphqexl.Auth,
-      GraphqexlWeb.Endpoint,
-      # Starts a worker by calling: Graphqexl.Worker.start_link(arg)
-      # {Graphqexl.Worker, arg},
+      # TODO: pull schema.gql from configured env
+      Graphqexl.Schema.Executable,
+      Plug.Cowboy.child_spec(scheme: :http, plug: Router, options: [port: 4000]),
     ]
 
     # See https://hexdocs.pm/elixir/Supervisor.html
     # for other strategies and supported options
     opts = [strategy: :one_for_one, name: Graphqexl.Supervisor]
     Supervisor.start_link(children, opts)
-  end
-
-  # Tell Phoenix to update the endpoint configuration
-  # whenever the application is updated.
-  def config_change(changed, _new, removed) do
-    Graphqexl.Endpoint.config_change(changed, removed)
-    :ok
   end
 end

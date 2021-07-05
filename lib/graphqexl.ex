@@ -1,18 +1,18 @@
 defmodule Graphqexl do
   @moduledoc """
-  Documentation for Graphqexl.
+  Fully-loaded GraphQL implementation with server and developer tools.
+
+  ## Getting Started
+
+  ## Server Tools
+
+  ## Developer Utils
+
+  ### GraphQL Playground
+
+  ## References
+  - [GraphQL](https://www.graphql.org)
+  - [GraphQL Spec](https://spec.graphql.org/June2018/)
+
   """
-
-  @doc """
-  Hello world.
-
-  ## Examples
-
-      iex> Graphqexl.hello()
-      :world
-
-  """
-  def hello do
-    :world
-  end
 end

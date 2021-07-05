@@ -1,9 +1,0 @@
-steps:
-- name: gcr.io/cloud-builders/docker
-  args:
-  - build
-  - '-t'
-  - gcr.io/absynthe/graphqexl
-  - .
-  env:
-    - MIX_ENV=production
